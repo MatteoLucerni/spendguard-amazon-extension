@@ -9,35 +9,87 @@ function injectPopup(data) {
     top: '20px',
     right: '20px',
     zIndex: '2147483647',
-    backgroundColor: '#cc0000',
-    color: 'white',
-    padding: '15px',
-    borderRadius: '8px',
-    boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-    fontFamily: 'Arial, sans-serif',
-    minWidth: '220px',
-    border: '2px solid white',
+    backgroundColor: '#ffffff',
+    color: '#333333',
+    padding: '0',
+    borderRadius: '12px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    minWidth: '280px',
+    border: '1px solid #e0e0e0',
+    cursor: 'move',
+    userSelect: 'none',
   });
 
   popup.innerHTML = `
-        <div style="font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.3); margin-bottom:10px; padding-bottom:5px; display:flex; justify-content:space-between;">
-            <span>Spending Tracker</span>
-            <span id="amz-close" style="cursor:pointer; padding:0 5px;">×</span>
+        <div id="amz-drag-handle" style="font-weight:600; font-size:14px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:12px 15px; border-radius:12px 12px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
+            <span>💰 Spending Tracker</span>
+            <span id="amz-close" style="cursor:pointer; padding:0 8px; font-size:20px; line-height:1; opacity:0.9; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.9'">×</span>
         </div>
-        <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
-            <div style="display:flex; justify-content:space-between;">
-                <span>Last 30 days:</span> 
-                <b>EUR ${data.last30.toFixed(2)}</b>
+        <div style="padding:15px; display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f8f9fa; border-radius:8px;">
+                <span style="color:#555; font-size:13px; font-weight:500;">Last 30 days:</span>
+                <b style="color:#dc3545; font-size:16px;">EUR ${data.last30.toFixed(2)}</b>
             </div>
-            <div style="display:flex; justify-content:space-between; font-size:15px; background:rgba(0,0,0,0.2); padding:5px; border-radius:4px;">
-                <span>Past 3 months:</span> 
-                <b>EUR ${data.months3.toFixed(2)}</b>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius:8px; border-left:3px solid #667eea;">
+                <span style="color:#555; font-size:14px; font-weight:600;">Past 3 months:</span>
+                <b style="color:#dc3545; font-size:18px;">EUR ${data.months3.toFixed(2)}</b>
             </div>
         </div>
     `;
 
   document.body.appendChild(popup);
+
+  // Close button functionality
   document.getElementById('amz-close').onclick = () => popup.remove();
+
+  // Make popup draggable
+  let isDragging = false;
+  let currentX;
+  let currentY;
+  let initialX;
+  let initialY;
+  let xOffset = 0;
+  let yOffset = 0;
+
+  const dragHandle = document.getElementById('amz-drag-handle');
+
+  dragHandle.addEventListener('mousedown', dragStart);
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('mouseup', dragEnd);
+
+  function dragStart(e) {
+    initialX = e.clientX - xOffset;
+    initialY = e.clientY - yOffset;
+
+    if (e.target === dragHandle || dragHandle.contains(e.target)) {
+      isDragging = true;
+    }
+  }
+
+  function drag(e) {
+    if (isDragging) {
+      e.preventDefault();
+
+      currentX = e.clientX - initialX;
+      currentY = e.clientY - initialY;
+
+      xOffset = currentX;
+      yOffset = currentY;
+
+      setTranslate(currentX, currentY, popup);
+    }
+  }
+
+  function dragEnd(e) {
+    initialX = currentX;
+    initialY = currentY;
+    isDragging = false;
+  }
+
+  function setTranslate(xPos, yPos, el) {
+    el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+  }
 }
 
 async function init() {
