@@ -28,7 +28,7 @@ function showLoadingPopup() {
             }
         </style>
         <div style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:8px 10px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center;">
-            <span>Spending Tracker</span>
+            <span>Amazon Spending Tracker</span>
         </div>
         <div style="padding:10px; font-size:12px; color:#565959; line-height:1.4;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
@@ -68,7 +68,7 @@ function injectPopup(data) {
 
   popup.innerHTML = `
         <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:8px 10px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
-            <span>Spending Tracker</span>
+            <span>Amazon Spending Tracker</span>
             <span id="amz-close" style="cursor:pointer; padding:0 5px; font-size:18px; line-height:1;">×</span>
         </div>
         <div style="padding:10px; display:flex; flex-direction:column; gap:8px; font-size:12px;">
@@ -120,11 +120,12 @@ function injectPopup(data) {
       let newY = e.clientY - offsetY;
 
       const rect = popup.getBoundingClientRect();
-      const maxX = window.innerWidth - rect.width;
-      const maxY = window.innerHeight - rect.height;
+      const margin = 10;
+      const maxX = window.innerWidth - rect.width - margin;
+      const maxY = window.innerHeight - rect.height - margin;
 
-      newX = Math.max(0, Math.min(newX, maxX));
-      newY = Math.max(0, Math.min(newY, maxY));
+      newX = Math.max(margin, Math.min(newX, maxX));
+      newY = Math.max(margin, Math.min(newY, maxY));
 
       popup.style.left = newX + 'px';
       popup.style.top = newY + 'px';
