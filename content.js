@@ -1,3 +1,43 @@
+let cachedSpendingData = null;
+
+function showMinimizedIcon() {
+  const existing = document.getElementById('amz-spending-popup');
+  if (existing) existing.remove();
+
+  const icon = document.createElement('div');
+  icon.id = 'amz-spending-popup';
+  Object.assign(icon.style, {
+    position: 'fixed',
+    bottom: '10px',
+    right: '10px',
+    zIndex: '2147483647',
+    backgroundColor: '#232f3e',
+    color: '#ffffff',
+    width: '50px',
+    height: '50px',
+    borderRadius: '50%',
+    boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    fontSize: '24px',
+    fontWeight: 'bold',
+    border: '2px solid #ffffff',
+    boxSizing: 'border-box',
+    userSelect: 'none',
+  });
+
+  icon.innerHTML = '$';
+  icon.onclick = () => {
+    if (cachedSpendingData) {
+      injectPopup(cachedSpendingData);
+    }
+  };
+
+  document.body.appendChild(icon);
+}
+
 function showLoadingPopup() {
   const existing = document.getElementById('amz-spending-popup');
   if (existing) existing.remove();
@@ -45,6 +85,8 @@ function showLoadingPopup() {
 }
 
 function injectPopup(data) {
+  cachedSpendingData = data;
+
   const existing = document.getElementById('amz-spending-popup');
   if (existing) existing.remove();
 
@@ -88,7 +130,7 @@ function injectPopup(data) {
 
   document.body.appendChild(popup);
 
-  document.getElementById('amz-close').onclick = () => popup.remove();
+  document.getElementById('amz-close').onclick = () => showMinimizedIcon();
 
   let isDragging = false;
   let offsetX = 0;
