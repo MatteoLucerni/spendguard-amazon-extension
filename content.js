@@ -10,30 +10,31 @@ function injectPopup(data) {
     right: '20px',
     zIndex: '2147483647',
     backgroundColor: '#ffffff',
-    color: '#333333',
+    color: '#0f1111',
     padding: '0',
-    borderRadius: '12px',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    minWidth: '280px',
-    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
+    fontFamily: 'Amazon Ember, Arial, sans-serif',
+    minWidth: '200px',
+    border: '1px solid #d5d9d9',
     cursor: 'move',
     userSelect: 'none',
   });
 
   popup.innerHTML = `
-        <div id="amz-drag-handle" style="font-weight:600; font-size:14px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:12px 15px; border-radius:12px 12px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
-            <span>💰 Spending Tracker</span>
-            <span id="amz-close" style="cursor:pointer; padding:0 8px; font-size:20px; line-height:1; opacity:0.9; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.9'">×</span>
+        <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:8px 10px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
+            <span>Spending Tracker</span>
+            <span id="amz-close" style="cursor:pointer; padding:0 5px; font-size:18px; line-height:1;">×</span>
         </div>
-        <div style="padding:15px; display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#f8f9fa; border-radius:8px;">
-                <span style="color:#555; font-size:14px; font-weight:500;">Last 30 days:</span>
-                <b style="color:#dc3545; font-size:16px;">EUR ${data.last30.toFixed(2)}</b>
+        <div style="padding:10px; display:flex; flex-direction:column; gap:8px; font-size:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="color:#565959;">Last 30 days:</span>
+                <b style="color:#B12704; font-size:13px;">EUR ${data.last30.toFixed(2)}</b>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#f8f9fa; border-radius:8px;">
-                <span style="color:#555; font-size:14px; font-weight:600;">Past 3 months:</span>
-                <b style="color:#dc3545; font-size:18px;">EUR ${data.months3.toFixed(2)}</b>
+            <div style="height:1px; background:#e7e7e7; margin:2px 0;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="color:#565959;">Past 3 months:</span>
+                <b style="color:#B12704; font-size:14px;">EUR ${data.months3.toFixed(2)}</b>
             </div>
         </div>
     `;
