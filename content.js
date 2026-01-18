@@ -106,7 +106,6 @@ function injectPopup(data) {
     width: '220px',
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
-    cursor: 'move',
     userSelect: 'none',
   });
 
