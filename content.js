@@ -1,3 +1,38 @@
+function showLoadingPopup() {
+  const existing = document.getElementById('amz-spending-popup');
+  if (existing) existing.remove();
+
+  const popup = document.createElement('div');
+  popup.id = 'amz-spending-popup';
+  Object.assign(popup.style, {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    zIndex: '2147483647',
+    backgroundColor: '#ffffff',
+    color: '#0f1111',
+    padding: '0',
+    borderRadius: '8px',
+    boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
+    fontFamily: 'Amazon Ember, Arial, sans-serif',
+    minWidth: '200px',
+    border: '1px solid #d5d9d9',
+    userSelect: 'none',
+  });
+
+  popup.innerHTML = `
+        <div style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:8px 10px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center;">
+            <span>Spending Tracker</span>
+        </div>
+        <div style="padding:10px; font-size:12px; color:#565959; line-height:1.4;">
+            <div style="margin-bottom:6px;">Loading spending data...</div>
+            <div style="font-size:11px; color:#767676;">Tabs may open automatically to fetch your orders.</div>
+        </div>
+    `;
+
+  document.body.appendChild(popup);
+}
+
 function injectPopup(data) {
   const existing = document.getElementById('amz-spending-popup');
   if (existing) existing.remove();
@@ -6,7 +41,7 @@ function injectPopup(data) {
   popup.id = 'amz-spending-popup';
   Object.assign(popup.style, {
     position: 'fixed',
-    top: '20px',
+    bottom: '20px',
     right: '20px',
     zIndex: '2147483647',
     backgroundColor: '#ffffff',
@@ -104,6 +139,8 @@ async function init() {
     window.location.href.includes('checkout')
   )
     return;
+
+  showLoadingPopup();
 
   chrome.runtime.sendMessage({ action: 'GET_SPENDING' }, response => {
     if (response && !response.error) {
