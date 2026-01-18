@@ -27,11 +27,11 @@ function injectPopup(data) {
             <span id="amz-close" style="cursor:pointer; padding:0 8px; font-size:20px; line-height:1; opacity:0.9; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.9'">×</span>
         </div>
         <div style="padding:15px; display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f8f9fa; border-radius:8px;">
-                <span style="color:#555; font-size:13px; font-weight:500;">Last 30 days:</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#f8f9fa; border-radius:8px;">
+                <span style="color:#555; font-size:14px; font-weight:500;">Last 30 days:</span>
                 <b style="color:#dc3545; font-size:16px;">EUR ${data.last30.toFixed(2)}</b>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius:8px; border-left:3px solid #667eea;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#f8f9fa; border-radius:8px;">
                 <span style="color:#555; font-size:14px; font-weight:600;">Past 3 months:</span>
                 <b style="color:#dc3545; font-size:18px;">EUR ${data.months3.toFixed(2)}</b>
             </div>
@@ -40,10 +40,8 @@ function injectPopup(data) {
 
   document.body.appendChild(popup);
 
-  // Close button functionality
   document.getElementById('amz-close').onclick = () => popup.remove();
 
-  // Make popup draggable
   let isDragging = false;
   let currentX;
   let currentY;
@@ -74,6 +72,13 @@ function injectPopup(data) {
       currentX = e.clientX - initialX;
       currentY = e.clientY - initialY;
 
+      const rect = popup.getBoundingClientRect();
+      const maxX = window.innerWidth - rect.width;
+      const maxY = window.innerHeight - rect.height;
+
+      currentX = Math.max(0, Math.min(currentX, maxX));
+      currentY = Math.max(0, Math.min(currentY, maxY));
+
       xOffset = currentX;
       yOffset = currentY;
 
@@ -91,22 +96,6 @@ function injectPopup(data) {
     el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
   }
 }
-
-async function init() {
-  if (
-    window.location.href.includes('signin') ||
-    window.location.href.includes('checkout')
-  )
-    return;
-
-  chrome.runtime.sendMessage({ action: 'GET_SPENDING' }, response => {
-    if (response && !response.error) {
-      injectPopup(response);
-    }
-  });
-}
-
-init();
 
 async function init() {
   if (
