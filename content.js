@@ -89,12 +89,8 @@ function injectPopup(data) {
   document.getElementById('amz-close').onclick = () => popup.remove();
 
   let isDragging = false;
-  let currentX;
-  let currentY;
-  let initialX;
-  let initialY;
-  let xOffset = 0;
-  let yOffset = 0;
+  let offsetX = 0;
+  let offsetY = 0;
 
   const dragHandle = document.getElementById('amz-drag-handle');
 
@@ -103,11 +99,16 @@ function injectPopup(data) {
   document.addEventListener('mouseup', dragEnd);
 
   function dragStart(e) {
-    initialX = e.clientX - xOffset;
-    initialY = e.clientY - yOffset;
-
     if (e.target === dragHandle || dragHandle.contains(e.target)) {
       isDragging = true;
+      const rect = popup.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+
+      popup.style.bottom = 'auto';
+      popup.style.right = 'auto';
+      popup.style.left = rect.left + 'px';
+      popup.style.top = rect.top + 'px';
     }
   }
 
@@ -115,31 +116,23 @@ function injectPopup(data) {
     if (isDragging) {
       e.preventDefault();
 
-      currentX = e.clientX - initialX;
-      currentY = e.clientY - initialY;
+      let newX = e.clientX - offsetX;
+      let newY = e.clientY - offsetY;
 
       const rect = popup.getBoundingClientRect();
       const maxX = window.innerWidth - rect.width;
       const maxY = window.innerHeight - rect.height;
 
-      currentX = Math.max(0, Math.min(currentX, maxX));
-      currentY = Math.max(0, Math.min(currentY, maxY));
+      newX = Math.max(0, Math.min(newX, maxX));
+      newY = Math.max(0, Math.min(newY, maxY));
 
-      xOffset = currentX;
-      yOffset = currentY;
-
-      setTranslate(currentX, currentY, popup);
+      popup.style.left = newX + 'px';
+      popup.style.top = newY + 'px';
     }
   }
 
   function dragEnd(e) {
-    initialX = currentX;
-    initialY = currentY;
     isDragging = false;
-  }
-
-  function setTranslate(xPos, yPos, el) {
-    el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
   }
 }
 
