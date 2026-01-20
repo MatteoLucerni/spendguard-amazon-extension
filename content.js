@@ -214,6 +214,9 @@ function injectPopup(data) {
 }
 
 async function init() {
+  // Skip if this is a scraping tab opened by background.js
+  if (window.location.href.includes('_scraping=1')) return;
+
   if (
     window.location.href.includes('signin') ||
     window.location.href.includes('checkout')

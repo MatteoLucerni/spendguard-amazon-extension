@@ -2,7 +2,7 @@ const STORAGE_KEY = 'amz_spending_cache';
 const CACHE_TIME = 1000 * 60 * 30;
 
 async function scrapeSinglePage(filter, startIndex = 0) {
-  let url = `https://www.amazon.it/your-orders/orders?timeFilter=${filter}`;
+  let url = `https://www.amazon.it/your-orders/orders?timeFilter=${filter}&_scraping=1`;
   if (startIndex > 0) {
     url += `&startIndex=${startIndex}`;
   }
