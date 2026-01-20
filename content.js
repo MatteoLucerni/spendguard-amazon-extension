@@ -55,7 +55,7 @@ function constrainToViewport(left, top) {
   const viewportWidth = document.documentElement.clientWidth;
   const viewportHeight = document.documentElement.clientHeight;
   const margin = 10;
-  const popupWidth = 200;
+  const popupWidth = 160;
   const popupHeight = 130;
 
   // Calculate max positions, ensuring they don't go below margin even if viewport is small
@@ -148,7 +148,7 @@ function showLoadingPopup() {
     borderRadius: '8px',
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     fontFamily: 'Amazon Ember, Arial, sans-serif',
-    width: '200px',
+    width: '160px',
     height: '130px',
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
@@ -265,7 +265,7 @@ function injectPopup(data) {
     borderRadius: '8px',
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     fontFamily: 'Amazon Ember, Arial, sans-serif',
-    width: '200px',
+    width: '160px',
     height: '130px',
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
