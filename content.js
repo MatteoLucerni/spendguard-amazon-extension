@@ -292,9 +292,9 @@ function injectPopup(data) {
                 </div>`
     : `<div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="color:#565959;">Last 3 months:</span>
-                    <b style="color:#B12704; font-size:16px;">EUR ${data.total3Months.toFixed(2)}</b>
+                    <b style="color:#B12704; font-size:14px;">${data.total3Months.toFixed(2)} €</b>
                 </div>
-                <div style="font-size:10px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''} ${warning3Months}</div>`;
+                <div style="font-size:11px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''} ${warning3Months}</div>`;
 
   popup.innerHTML = `
         <style>
@@ -311,9 +311,9 @@ function injectPopup(data) {
             <div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="color:#565959;">Last 30 days:</span>
-                    <b style="color:#B12704; font-size:16px;">EUR ${data.total.toFixed(2)}</b>
+                    <b style="color:#B12704; font-size:14px;">${data.total.toFixed(2)} €</b>
                 </div>
-                <div style="font-size:10px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''} ${warning30}</div>
+                <div style="font-size:11px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''} ${warning30}</div>
             </div>
             <div style="border-top:1px solid #e7e7e7; padding-top:4px;">
                 ${threeMonthsContent}
