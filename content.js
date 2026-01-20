@@ -1,28 +1,84 @@
 let cachedSpendingData = null;
 
 function savePopupState(isMinimized, position = null) {
+  const currentState = getPopupState();
   const state = {
     isMinimized,
-    position: position || JSON.parse(localStorage.getItem('amz-popup-state'))?.position || null
+    // Only update position if explicitly provided, otherwise keep existing
+    position: position !== null ? position : currentState.position
   };
   localStorage.setItem('amz-popup-state', JSON.stringify(state));
 }
 
 function getPopupState() {
-  const saved = localStorage.getItem('amz-popup-state');
-  return saved ? JSON.parse(saved) : { isMinimized: false, position: null };
+  try {
+    const saved = localStorage.getItem('amz-popup-state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        isMinimized: Boolean(parsed.isMinimized),
+        position: parsed.position && typeof parsed.position.left === 'number' && typeof parsed.position.top === 'number'
+          ? parsed.position
+          : null
+      };
+    }
+  } catch (e) {
+    console.error('Tracker: Error reading popup state', e);
+  }
+  return { isMinimized: false, position: null };
+}
+
+// Get current popup position from DOM
+function getCurrentPopupPosition() {
+  const popup = document.getElementById('amz-spending-popup');
+  if (popup) {
+    const rect = popup.getBoundingClientRect();
+    return { left: rect.left, top: rect.top };
+  }
+  return null;
+}
+
+// Apply position to a style object
+function applyPosition(styleObj, position) {
+  if (position && typeof position.left === 'number' && typeof position.top === 'number') {
+    // Validate position is within viewport
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
+    const margin = 10;
+
+    let left = position.left;
+    let top = position.top;
+
+    // Ensure popup is visible (at least partially)
+    if (left < margin) left = margin;
+    if (top < margin) top = margin;
+    if (left > viewportWidth - 50) left = viewportWidth - 230; // 220px width + margin
+    if (top > viewportHeight - 50) top = viewportHeight - 100;
+
+    styleObj.left = left + 'px';
+    styleObj.top = top + 'px';
+  } else {
+    styleObj.bottom = '10px';
+    styleObj.right = '10px';
+  }
 }
 
 function showMinimizedIcon() {
+  // Save current position before removing the popup
+  const currentPosition = getCurrentPopupPosition();
+  if (currentPosition) {
+    savePopupState(true, currentPosition);
+  }
+
   const existing = document.getElementById('amz-spending-popup');
   if (existing) existing.remove();
 
+  const savedState = getPopupState();
   const icon = document.createElement('div');
   icon.id = 'amz-spending-popup';
-  Object.assign(icon.style, {
+
+  const baseStyle = {
     position: 'fixed',
-    bottom: '10px',
-    right: '10px',
     zIndex: '2147483647',
     backgroundColor: '#232f3e',
     color: '#ffffff',
@@ -39,7 +95,10 @@ function showMinimizedIcon() {
     border: '2px solid #ffffff',
     boxSizing: 'border-box',
     userSelect: 'none',
-  });
+  };
+
+  applyPosition(baseStyle, savedState.position);
+  Object.assign(icon.style, baseStyle);
 
   icon.innerHTML = '$';
   icon.onclick = () => {
@@ -49,19 +108,19 @@ function showMinimizedIcon() {
   };
 
   document.body.appendChild(icon);
-  savePopupState(true);
+  // Don't call savePopupState here - we already saved it above
 }
 
 function showLoadingPopup() {
   const existing = document.getElementById('amz-spending-popup');
   if (existing) existing.remove();
 
+  const savedState = getPopupState();
   const popup = document.createElement('div');
   popup.id = 'amz-spending-popup';
-  Object.assign(popup.style, {
+
+  const baseStyle = {
     position: 'fixed',
-    bottom: '10px',
-    right: '10px',
     zIndex: '2147483647',
     backgroundColor: '#ffffff',
     color: '#0f1111',
@@ -73,7 +132,10 @@ function showLoadingPopup() {
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
     userSelect: 'none',
-  });
+  };
+
+  applyPosition(baseStyle, savedState.position);
+  Object.assign(popup.style, baseStyle);
 
   popup.innerHTML = `
         <style>
@@ -101,6 +163,12 @@ function showLoadingPopup() {
 function injectPopup(data) {
   cachedSpendingData = data;
 
+  // CRITICAL: Save current position BEFORE removing the popup
+  const currentPosition = getCurrentPopupPosition();
+  if (currentPosition) {
+    savePopupState(false, currentPosition);
+  }
+
   const existing = document.getElementById('amz-spending-popup');
   if (existing) existing.remove();
 
@@ -123,14 +191,7 @@ function injectPopup(data) {
     userSelect: 'none',
   };
 
-  if (savedState.position) {
-    baseStyle.left = savedState.position.left + 'px';
-    baseStyle.top = savedState.position.top + 'px';
-  } else {
-    baseStyle.bottom = '10px';
-    baseStyle.right = '10px';
-  }
-
+  applyPosition(baseStyle, savedState.position);
   Object.assign(popup.style, baseStyle);
 
   const warning30 = data.limitReached
@@ -184,9 +245,10 @@ function injectPopup(data) {
 
   document.getElementById('amz-close').onclick = () => showMinimizedIcon();
 
-  savePopupState(false);
+  // Note: We don't call savePopupState here anymore - position is saved on drag end or when minimizing
 
   let isDragging = false;
+  let hasDragged = false; // Track if actual drag occurred
   let offsetX = 0;
   let offsetY = 0;
 
@@ -199,6 +261,7 @@ function injectPopup(data) {
   function dragStart(e) {
     if (e.target === dragHandle || dragHandle.contains(e.target)) {
       isDragging = true;
+      hasDragged = false; // Reset drag tracking
       const rect = popup.getBoundingClientRect();
       offsetX = e.clientX - rect.left;
       offsetY = e.clientY - rect.top;
@@ -213,6 +276,7 @@ function injectPopup(data) {
   function drag(e) {
     if (isDragging) {
       e.preventDefault();
+      hasDragged = true; // Mark that actual dragging occurred
 
       let newX = e.clientX - offsetX;
       let newY = e.clientY - offsetY;
@@ -233,9 +297,13 @@ function injectPopup(data) {
   }
 
   function dragEnd(e) {
+    if (isDragging && hasDragged) {
+      // Only save position if actual dragging occurred
+      const rect = popup.getBoundingClientRect();
+      savePopupState(false, { left: rect.left, top: rect.top });
+    }
     isDragging = false;
-    const rect = popup.getBoundingClientRect();
-    savePopupState(false, { left: rect.left, top: rect.top });
+    hasDragged = false;
   }
 }
 
