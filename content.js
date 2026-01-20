@@ -58,10 +58,13 @@ function constrainToViewport(left, top) {
   const popupWidth = 200;
   const popupHeight = 130;
 
-  if (left < margin) left = margin;
-  if (top < margin) top = margin;
-  if (left > viewportWidth - popupWidth - margin) left = viewportWidth - popupWidth - margin;
-  if (top > viewportHeight - popupHeight - margin) top = viewportHeight - popupHeight - margin;
+  // Calculate max positions, ensuring they don't go below margin even if viewport is small
+  const maxLeft = Math.max(margin, viewportWidth - popupWidth - margin);
+  const maxTop = Math.max(margin, viewportHeight - popupHeight - margin);
+
+  // Clamp position between margin and max
+  left = Math.max(margin, Math.min(left, maxLeft));
+  top = Math.max(margin, Math.min(top, maxTop));
 
   return { left, top };
 }
