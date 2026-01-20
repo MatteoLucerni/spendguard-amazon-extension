@@ -1,9 +1,14 @@
 const STORAGE_KEY = 'amz_spending_cache';
 const CACHE_TIME = 1000 * 60 * 30;
 
-async function scrapeWithTab(filter) {
+async function scrapeSinglePage(filter, startIndex = 0) {
+  let url = `https://www.amazon.it/your-orders/orders?timeFilter=${filter}`;
+  if (startIndex > 0) {
+    url += `&startIndex=${startIndex}`;
+  }
+
   const tab = await chrome.tabs.create({
-    url: `https://www.amazon.it/your-orders/orders?timeFilter=${filter}`,
+    url: url,
     active: false,
   });
 
@@ -35,8 +40,13 @@ async function scrapeWithTab(filter) {
                     pageSum += parseFloat(clean) || 0;
                   }
                 });
+
+                const orderCards = document.querySelectorAll('.order-card');
+                const hasOrders = orderCards.length > 0;
+
                 return {
                   sum: pageSum,
+                  hasOrders: hasOrders,
                   isBlocked:
                     document.body.innerText.includes('captcha') ||
                     document.querySelector('form[action*="signin"]') !== null,
@@ -47,16 +57,38 @@ async function scrapeWithTab(filter) {
             const data = results[0].result;
             chrome.tabs.remove(tab.id);
 
-            if (data.isBlocked) resolve(-1);
-            else resolve(data.sum);
+            resolve(data);
           } catch (err) {
             chrome.tabs.remove(tab.id);
-            resolve(0);
+            resolve({ sum: 0, hasOrders: false, isBlocked: false });
           }
         }, 2000);
       }
     });
   });
+}
+
+async function scrapeWithTab(filter) {
+  let totalSum = 0;
+  let startIndex = 0;
+  const maxPages = 50; // Limite di sicurezza per evitare loop infiniti
+
+  for (let page = 0; page < maxPages; page++) {
+    const result = await scrapeSinglePage(filter, startIndex);
+
+    if (result.isBlocked) {
+      return -1;
+    }
+
+    if (!result.hasOrders) {
+      break;
+    }
+
+    totalSum += result.sum;
+    startIndex += 10;
+  }
+
+  return totalSum;
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
