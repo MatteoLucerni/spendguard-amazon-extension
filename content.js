@@ -55,7 +55,7 @@ function constrainToViewport(left, top) {
   const viewportWidth = document.documentElement.clientWidth;
   const viewportHeight = document.documentElement.clientHeight;
   const margin = 10;
-  const popupWidth = 200;
+  const popupWidth = 160;
   const popupHeight = 130;
 
   // Calculate max positions, ensuring they don't go below margin even if viewport is small
@@ -148,7 +148,7 @@ function showLoadingPopup() {
     borderRadius: '8px',
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     fontFamily: 'Amazon Ember, Arial, sans-serif',
-    width: '200px',
+    width: '160px',
     height: '130px',
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
@@ -166,7 +166,7 @@ function showLoadingPopup() {
             }
         </style>
         <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
-            <span>Amazon Spending Tracker</span>
+            <span>Spendings</span>
             <span id="amz-close" style="cursor:pointer; padding:0 4px; font-size:16px; line-height:1;">×</span>
         </div>
         <div style="padding:8px; font-size:12px; color:#565959; line-height:1.3;">
@@ -265,7 +265,7 @@ function injectPopup(data) {
     borderRadius: '8px',
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     fontFamily: 'Amazon Ember, Arial, sans-serif',
-    width: '200px',
+    width: '160px',
     height: '130px',
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
@@ -292,9 +292,9 @@ function injectPopup(data) {
                 </div>`
     : `<div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="color:#565959;">Last 3 months:</span>
-                    <b style="color:#B12704; font-size:16px;">EUR ${data.total3Months.toFixed(2)}</b>
+                    <b style="color:#B12704; font-size:14px;">${Math.round(data.total3Months)} €</b>
                 </div>
-                <div style="font-size:10px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''} ${warning3Months}</div>`;
+                <div style="font-size:11px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''} ${warning3Months}</div>`;
 
   popup.innerHTML = `
         <style>
@@ -304,16 +304,16 @@ function injectPopup(data) {
             }
         </style>
         <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
-            <span>Amazon Spending Tracker</span>
+            <span>Spendings</span>
             <span id="amz-close" style="cursor:pointer; padding:0 4px; font-size:16px; line-height:1;">×</span>
         </div>
         <div style="padding:6px 8px; display:flex; flex-direction:column; gap:4px; font-size:12px;">
             <div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="color:#565959;">Last 30 days:</span>
-                    <b style="color:#B12704; font-size:16px;">EUR ${data.total.toFixed(2)}</b>
+                    <b style="color:#B12704; font-size:14px;">${Math.round(data.total)} €</b>
                 </div>
-                <div style="font-size:10px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''} ${warning30}</div>
+                <div style="font-size:11px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''} ${warning30}</div>
             </div>
             <div style="border-top:1px solid #e7e7e7; padding-top:4px;">
                 ${threeMonthsContent}

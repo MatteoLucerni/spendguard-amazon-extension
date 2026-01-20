@@ -1,6 +1,6 @@
 const STORAGE_KEY_30 = 'amz_spending_cache_30';
 const STORAGE_KEY_3M = 'amz_spending_cache_3m';
-const CACHE_TIME = 1000 * 60 * 30;
+const CACHE_TIME = 1000 * 60 * 60 * 24; // 1 day
 
 async function scrapeSinglePage(filter, startIndex = 0) {
   let url = `https://www.amazon.it/your-orders/orders?timeFilter=${filter}&_scraping=1`;
