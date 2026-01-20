@@ -73,14 +73,15 @@ async function scrapeSinglePage(filter, startIndex = 0) {
 async function scrapeWithTab(filter) {
   let totalSum = 0;
   let startIndex = 0;
-  const maxPages = 50; // Limite di sicurezza per evitare loop infiniti
+  const maxPages = 5; // Limite per evitare troppe tab
   let totalOrders = 0;
+  let limitReached = false;
 
   for (let page = 0; page < maxPages; page++) {
     const result = await scrapeSinglePage(filter, startIndex);
 
     if (result.isBlocked) {
-      return -1;
+      return { sum: -1, orderCount: 0, limitReached: false };
     }
 
     console.log(`[Amazon Tracker] ${filter} - Page ${page + 1}: ${result.orderCount} orders, €${result.sum.toFixed(2)}`);
@@ -100,12 +101,19 @@ async function scrapeWithTab(filter) {
       break;
     }
 
+    // Se abbiamo raggiunto il limite di pagine
+    if (page === maxPages - 1) {
+      console.log(`[Amazon Tracker] ${filter} - Reached page limit (${maxPages} pages)`);
+      limitReached = true;
+      break;
+    }
+
     startIndex += 10;
   }
 
-  console.log(`[Amazon Tracker] ${filter} TOTAL: ${totalOrders} orders, €${totalSum.toFixed(2)}`);
+  console.log(`[Amazon Tracker] ${filter} TOTAL: ${totalOrders} orders, €${totalSum.toFixed(2)}${limitReached ? ' (limit reached)' : ''}`);
 
-  return totalSum;
+  return { sum: totalSum, orderCount: totalOrders, limitReached };
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -120,15 +128,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       } else {
         console.log('[Amazon Tracker] Cache expired or not found, fetching new data...');
 
-        const last30 = await scrapeWithTab('last30');
-        if (last30 === -1) {
+        const lastWeekResult = await scrapeWithTab('days-7');
+        if (lastWeekResult.sum === -1) {
           sendResponse({ error: 'AUTH_REQUIRED' });
           return;
         }
 
-        const months3 = await scrapeWithTab('months-3');
+        const lastMonthResult = await scrapeWithTab('last30');
 
-        const data = { last30, months3 };
+        const data = {
+          lastWeek: lastWeekResult.sum,
+          lastWeekOrders: lastWeekResult.orderCount,
+          lastWeekLimitReached: lastWeekResult.limitReached,
+          lastMonth: lastMonthResult.sum,
+          lastMonthOrders: lastMonthResult.orderCount,
+          lastMonthLimitReached: lastMonthResult.limitReached
+        };
         console.log('[Amazon Tracker] Saving to cache and sending response:', data);
         await chrome.storage.local.set({ [STORAGE_KEY]: { data, ts: now } });
         sendResponse(data);
