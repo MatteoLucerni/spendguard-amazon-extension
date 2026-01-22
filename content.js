@@ -17,6 +17,22 @@ function saveSettings(settings) {
   localStorage.setItem('amz-spending-settings', JSON.stringify(settings));
 }
 
+// Format timestamp as relative time (e.g., "5 min ago", "2 hours ago")
+function formatRelativeTime(timestamp) {
+  if (!timestamp) return '';
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
 function showSettingsView() {
   const currentPosition = getCurrentPopupPosition();
   if (currentPosition) {
@@ -428,6 +444,7 @@ function injectPopup(data) {
   // Build 30 days content
   let thirtyDaysContent = '';
   if (settings.show30Days) {
+    const time30 = data.updatedAt30 ? formatRelativeTime(data.updatedAt30) : '';
     thirtyDaysContent = is30DaysLoading
       ? `<div style="display:flex; align-items:center; gap:6px;">
           <div style="width:12px; height:12px; border:2px solid #e7e7e7; border-top:2px solid #232f3e; border-radius:50%; animation:amz-spinner 0.8s linear infinite;"></div>
@@ -438,13 +455,14 @@ function injectPopup(data) {
             <span style="color:#565959;">Last 30 days:</span>
             <b style="color:#B12704; font-size:14px;">${Math.round(data.total)} €</b>
           </div>
-          <div style="font-size:11px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''} ${warning30}</div>
+          <div style="font-size:11px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''}${time30 ? ` · ${time30}` : ''} ${warning30}</div>
         </div>`;
   }
 
   // Build 3 months content
   let threeMonthsContent = '';
   if (settings.show3Months) {
+    const time3M = data.updatedAt3M ? formatRelativeTime(data.updatedAt3M) : '';
     const separator = settings.show30Days ? 'border-top:1px solid #e7e7e7; padding-top:4px;' : '';
     const innerContent = is3MonthsLoading
       ? `<div style="display:flex; align-items:center; gap:6px;">
@@ -455,7 +473,7 @@ function injectPopup(data) {
           <span style="color:#565959;">Last 3 months:</span>
           <b style="color:#B12704; font-size:14px;">${Math.round(data.total3Months)} €</b>
         </div>
-        <div style="font-size:11px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''} ${warning3Months}</div>`;
+        <div style="font-size:11px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''}${time3M ? ` · ${time3M}` : ''} ${warning3Months}</div>`;
     threeMonthsContent = `<div style="${separator}">${innerContent}</div>`;
   }
 
@@ -547,6 +565,7 @@ function loadData(showLoading = true) {
           total: response30.total,
           orderCount: response30.orderCount,
           limitReached: response30.limitReached,
+          updatedAt30: response30.updatedAt,
         };
 
         // Update popup
@@ -563,6 +582,7 @@ function loadData(showLoading = true) {
                 total3Months: response3M.total,
                 orderCount3Months: response3M.orderCount,
                 limitReached3Months: response3M.limitReached,
+                updatedAt3M: response3M.updatedAt,
               };
 
               const currentPopup = document.getElementById('amz-spending-popup');
@@ -585,6 +605,7 @@ function loadData(showLoading = true) {
           total3Months: response3M.total,
           orderCount3Months: response3M.orderCount,
           limitReached3Months: response3M.limitReached,
+          updatedAt3M: response3M.updatedAt,
         };
 
         if (!savedState.isMinimized) {
