@@ -1,5 +1,111 @@
 let cachedSpendingData = null;
 
+// Settings management
+function getSettings() {
+  try {
+    const saved = localStorage.getItem('amz-spending-settings');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {
+    console.error('Tracker: Error reading settings', e);
+  }
+  return { show30Days: true, show3Months: true };
+}
+
+function saveSettings(settings) {
+  localStorage.setItem('amz-spending-settings', JSON.stringify(settings));
+}
+
+function showSettingsView() {
+  const currentPosition = getCurrentPopupPosition();
+  if (currentPosition) {
+    savePopupState(false, currentPosition);
+  }
+
+  const existing = document.getElementById('amz-spending-popup');
+  if (existing) existing.remove();
+
+  const savedState = getPopupState();
+  const settings = getSettings();
+  const popup = document.createElement('div');
+  popup.id = 'amz-spending-popup';
+
+  const baseStyle = {
+    position: 'fixed',
+    zIndex: '2147483647',
+    backgroundColor: '#ffffff',
+    color: '#0f1111',
+    padding: '0',
+    borderRadius: '8px',
+    boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
+    fontFamily: 'Amazon Ember, Arial, sans-serif',
+    width: '160px',
+    height: '130px',
+    border: '1px solid #d5d9d9',
+    boxSizing: 'border-box',
+    userSelect: 'none',
+    overflow: 'hidden',
+  };
+
+  applyPosition(baseStyle, savedState.position);
+  Object.assign(popup.style, baseStyle);
+
+  popup.innerHTML = `
+    <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
+      <span>Settings</span>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <span id="amz-back" style="cursor:pointer; padding:0 4px; font-size:14px; line-height:1;" title="Back">←</span>
+        <span id="amz-close" style="cursor:pointer; padding:0 4px; font-size:16px; line-height:1;">×</span>
+      </div>
+    </div>
+    <div style="padding:8px; font-size:12px;">
+      <div style="margin-bottom:8px; color:#565959; font-weight:600;">Show ranges:</div>
+      <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+        <input type="checkbox" id="amz-setting-30days" ${settings.show30Days ? 'checked' : ''} style="margin:0; cursor:pointer;">
+        <span>Last 30 days</span>
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="checkbox" id="amz-setting-3months" ${settings.show3Months ? 'checked' : ''} style="margin:0; cursor:pointer;">
+        <span>Last 3 months</span>
+      </label>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  document.getElementById('amz-close').onclick = () => showMinimizedIcon();
+  document.getElementById('amz-back').onclick = () => {
+    // Save settings before going back
+    const newSettings = {
+      show30Days: document.getElementById('amz-setting-30days').checked,
+      show3Months: document.getElementById('amz-setting-3months').checked,
+    };
+    saveSettings(newSettings);
+    if (cachedSpendingData) {
+      injectPopup(cachedSpendingData);
+    }
+  };
+
+  // Auto-save on checkbox change
+  document.getElementById('amz-setting-30days').onchange = () => {
+    const newSettings = {
+      show30Days: document.getElementById('amz-setting-30days').checked,
+      show3Months: document.getElementById('amz-setting-3months').checked,
+    };
+    saveSettings(newSettings);
+  };
+  document.getElementById('amz-setting-3months').onchange = () => {
+    const newSettings = {
+      show30Days: document.getElementById('amz-setting-30days').checked,
+      show3Months: document.getElementById('amz-setting-3months').checked,
+    };
+    saveSettings(newSettings);
+  };
+
+  setupDraggable(popup);
+}
+
 function savePopupState(isMinimized, position = null) {
   const currentState = getPopupState();
   const state = {
@@ -174,7 +280,10 @@ function showLoadingPopup() {
         </style>
         <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
             <span>Spendings</span>
-            <span id="amz-close" style="cursor:pointer; padding:0 4px; font-size:16px; line-height:1;">×</span>
+            <div style="display:flex; align-items:center; gap:4px;">
+                <span id="amz-settings" style="cursor:pointer; padding:0 4px; font-size:14px; line-height:1;" title="Settings">⚙</span>
+                <span id="amz-close" style="cursor:pointer; padding:0 4px; font-size:16px; line-height:1;">×</span>
+            </div>
         </div>
         <div style="padding:8px; font-size:12px; color:#565959; line-height:1.3;">
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
@@ -188,6 +297,7 @@ function showLoadingPopup() {
   document.body.appendChild(popup);
 
   document.getElementById('amz-close').onclick = () => showMinimizedIcon();
+  document.getElementById('amz-settings').onclick = () => showSettingsView();
 
   // Make loading popup draggable
   setupDraggable(popup);
@@ -204,7 +314,7 @@ function setupDraggable(popup) {
 
   const dragStart = e => {
     if (e.target === dragHandle || dragHandle.contains(e.target)) {
-      if (e.target.id === 'amz-close') return; // Don't drag when clicking close
+      if (e.target.id === 'amz-close' || e.target.id === 'amz-settings' || e.target.id === 'amz-back') return; // Don't drag when clicking buttons
       isDragging = true;
       hasDragged = false;
       const rect = popup.getBoundingClientRect();
@@ -259,8 +369,13 @@ function injectPopup(data) {
   if (existing) existing.remove();
 
   const savedState = getPopupState();
+  const settings = getSettings();
   const popup = document.createElement('div');
   popup.id = 'amz-spending-popup';
+
+  // Calculate height based on enabled ranges
+  const enabledCount = (settings.show30Days ? 1 : 0) + (settings.show3Months ? 1 : 0);
+  const popupHeight = enabledCount === 2 ? 130 : enabledCount === 1 ? 85 : 60;
 
   const baseStyle = {
     position: 'fixed',
@@ -272,7 +387,7 @@ function injectPopup(data) {
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     fontFamily: 'Amazon Ember, Arial, sans-serif',
     width: '160px',
-    height: '130px',
+    height: popupHeight + 'px',
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
     userSelect: 'none',
@@ -292,16 +407,38 @@ function injectPopup(data) {
       ? `<div style="font-size:10px; color:#ff9900;">⚠ Max 20 pages</div>`
       : '';
 
-  const threeMonthsContent = is3MonthsLoading
-    ? `<div style="display:flex; align-items:center; gap:6px;">
-                    <div style="width:12px; height:12px; border:2px solid #e7e7e7; border-top:2px solid #232f3e; border-radius:50%; animation:amz-spinner 0.8s linear infinite;"></div>
-                    <span style="color:#565959;">Loading 3 months...</span>
-                </div>`
-    : `<div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="color:#565959;">Last 3 months:</span>
-                    <b style="color:#B12704; font-size:14px;">${Math.round(data.total3Months)} €</b>
-                </div>
-                <div style="font-size:11px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''} ${warning3Months}</div>`;
+  // Build 30 days content
+  const thirtyDaysContent = settings.show30Days
+    ? `<div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#565959;">Last 30 days:</span>
+          <b style="color:#B12704; font-size:14px;">${Math.round(data.total)} €</b>
+        </div>
+        <div style="font-size:11px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''} ${warning30}</div>
+      </div>`
+    : '';
+
+  // Build 3 months content
+  let threeMonthsContent = '';
+  if (settings.show3Months) {
+    const separator = settings.show30Days ? 'border-top:1px solid #e7e7e7; padding-top:4px;' : '';
+    const innerContent = is3MonthsLoading
+      ? `<div style="display:flex; align-items:center; gap:6px;">
+          <div style="width:12px; height:12px; border:2px solid #e7e7e7; border-top:2px solid #232f3e; border-radius:50%; animation:amz-spinner 0.8s linear infinite;"></div>
+          <span style="color:#565959;">Loading 3 months...</span>
+        </div>`
+      : `<div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#565959;">Last 3 months:</span>
+          <b style="color:#B12704; font-size:14px;">${Math.round(data.total3Months)} €</b>
+        </div>
+        <div style="font-size:11px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''} ${warning3Months}</div>`;
+    threeMonthsContent = `<div style="${separator}">${innerContent}</div>`;
+  }
+
+  // Message when no ranges are enabled
+  const noRangesMessage = enabledCount === 0
+    ? `<div style="color:#565959; text-align:center;">No ranges enabled</div>`
+    : '';
 
   popup.innerHTML = `
         <style>
@@ -312,25 +449,22 @@ function injectPopup(data) {
         </style>
         <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
             <span>Spendings</span>
-            <span id="amz-close" style="cursor:pointer; padding:0 4px; font-size:16px; line-height:1;">×</span>
+            <div style="display:flex; align-items:center; gap:4px;">
+                <span id="amz-settings" style="cursor:pointer; padding:0 4px; font-size:14px; line-height:1;" title="Settings">⚙</span>
+                <span id="amz-close" style="cursor:pointer; padding:0 4px; font-size:16px; line-height:1;">×</span>
+            </div>
         </div>
         <div style="padding:6px 8px; display:flex; flex-direction:column; gap:4px; font-size:12px;">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="color:#565959;">Last 30 days:</span>
-                    <b style="color:#B12704; font-size:14px;">${Math.round(data.total)} €</b>
-                </div>
-                <div style="font-size:11px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''} ${warning30}</div>
-            </div>
-            <div style="border-top:1px solid #e7e7e7; padding-top:4px;">
-                ${threeMonthsContent}
-            </div>
+            ${thirtyDaysContent}
+            ${threeMonthsContent}
+            ${noRangesMessage}
         </div>
     `;
 
   document.body.appendChild(popup);
 
   document.getElementById('amz-close').onclick = () => showMinimizedIcon();
+  document.getElementById('amz-settings').onclick = () => showSettingsView();
 
   // Use shared draggable setup
   setupDraggable(popup);
