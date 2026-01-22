@@ -5,7 +5,7 @@ function savePopupState(isMinimized, position = null) {
   const state = {
     isMinimized,
     // Only update position if explicitly provided, otherwise keep existing
-    position: position !== null ? position : currentState.position
+    position: position !== null ? position : currentState.position,
   };
   localStorage.setItem('amz-popup-state', JSON.stringify(state));
 }
@@ -17,9 +17,12 @@ function getPopupState() {
       const parsed = JSON.parse(saved);
       return {
         isMinimized: Boolean(parsed.isMinimized),
-        position: parsed.position && typeof parsed.position.left === 'number' && typeof parsed.position.top === 'number'
-          ? parsed.position
-          : null
+        position:
+          parsed.position &&
+          typeof parsed.position.left === 'number' &&
+          typeof parsed.position.top === 'number'
+            ? parsed.position
+            : null,
       };
     }
   } catch (e) {
@@ -40,7 +43,11 @@ function getCurrentPopupPosition() {
 
 // Apply position to a style object
 function applyPosition(styleObj, position) {
-  if (position && typeof position.left === 'number' && typeof position.top === 'number') {
+  if (
+    position &&
+    typeof position.left === 'number' &&
+    typeof position.top === 'number'
+  ) {
     const constrained = constrainToViewport(position.left, position.top);
     styleObj.left = constrained.left + 'px';
     styleObj.top = constrained.top + 'px';
@@ -174,8 +181,7 @@ function showLoadingPopup() {
                 <div style="width:12px; height:12px; border:2px solid #e7e7e7; border-top:2px solid #232f3e; border-radius:50%; animation:amz-spinner 0.8s linear infinite;"></div>
                 <span>Loading spending data...</span>
             </div>
-            <div style="font-size:11px; color:#767676; margin-bottom:2px;">Analyzing last 30 days...</div>
-            <div style="font-size:11px; color:#767676;">Tabs may open automatically (max 20 pages).</div>
+            <div style="font-size:12px; color:#767676;">Tabs may open automatically</div>
         </div>
     `;
 
@@ -196,7 +202,7 @@ function setupDraggable(popup) {
   const dragHandle = document.getElementById('amz-drag-handle');
   if (!dragHandle) return;
 
-  const dragStart = (e) => {
+  const dragStart = e => {
     if (e.target === dragHandle || dragHandle.contains(e.target)) {
       if (e.target.id === 'amz-close') return; // Don't drag when clicking close
       isDragging = true;
@@ -212,7 +218,7 @@ function setupDraggable(popup) {
     }
   };
 
-  const drag = (e) => {
+  const drag = e => {
     if (isDragging) {
       e.preventDefault();
       hasDragged = true;
@@ -281,9 +287,10 @@ function injectPopup(data) {
     : '';
 
   const is3MonthsLoading = data.total3Months === undefined;
-  const warning3Months = !is3MonthsLoading && data.limitReached3Months
-    ? `<div style="font-size:10px; color:#ff9900;">⚠ Max 20 pages</div>`
-    : '';
+  const warning3Months =
+    !is3MonthsLoading && data.limitReached3Months
+      ? `<div style="font-size:10px; color:#ff9900;">⚠ Max 20 pages</div>`
+      : '';
 
   const threeMonthsContent = is3MonthsLoading
     ? `<div style="display:flex; align-items:center; gap:6px;">
@@ -351,7 +358,7 @@ async function init() {
       const partialData = {
         total: response30.total,
         orderCount: response30.orderCount,
-        limitReached: response30.limitReached
+        limitReached: response30.limitReached,
         // total3Months is undefined, will show loader
       };
 
@@ -371,7 +378,7 @@ async function init() {
             limitReached: response30.limitReached,
             total3Months: response3M.total,
             orderCount3Months: response3M.orderCount,
-            limitReached3Months: response3M.limitReached
+            limitReached3Months: response3M.limitReached,
           };
 
           cachedSpendingData = fullData;
