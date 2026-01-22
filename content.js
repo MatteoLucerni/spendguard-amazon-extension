@@ -1,4 +1,4 @@
-let cachedSpendingData = null;
+let cachedSpendingData = {};
 
 // Settings management
 function getSettings() {
@@ -95,9 +95,8 @@ function showSettingsView() {
       show3Months: document.getElementById('amz-setting-3months').checked,
     };
     saveSettings(newSettings);
-    if (cachedSpendingData) {
-      injectPopup(cachedSpendingData);
-    }
+    // Load data (will fetch missing ranges if newly enabled)
+    loadData(true);
   };
 
   // Auto-save on checkbox change
@@ -488,6 +487,103 @@ function injectPopup(data) {
   setupDraggable(popup);
 }
 
+// Load data based on current settings, only fetching what's needed
+function loadData(showLoading = true) {
+  const settings = getSettings();
+  const savedState = getPopupState();
+
+  // If nothing is enabled, just show the popup with no data
+  if (!settings.show30Days && !settings.show3Months) {
+    cachedSpendingData = {};
+    if (savedState.isMinimized) {
+      showMinimizedIcon();
+    } else {
+      injectPopup(cachedSpendingData);
+    }
+    return;
+  }
+
+  if (showLoading && !savedState.isMinimized) {
+    showLoadingPopup();
+  }
+
+  // Determine what data we need to load
+  const need30Days = settings.show30Days && cachedSpendingData?.total === undefined;
+  const need3Months = settings.show3Months && cachedSpendingData?.total3Months === undefined;
+
+  // If we already have all the data we need, just show it
+  if (!need30Days && !need3Months) {
+    if (savedState.isMinimized) {
+      showMinimizedIcon();
+    } else {
+      injectPopup(cachedSpendingData);
+    }
+    return;
+  }
+
+  // Load 30 days if needed and enabled
+  if (need30Days) {
+    chrome.runtime.sendMessage({ action: 'GET_SPENDING_30' }, response30 => {
+      if (response30 && !response30.error) {
+        cachedSpendingData = {
+          ...cachedSpendingData,
+          total: response30.total,
+          orderCount: response30.orderCount,
+          limitReached: response30.limitReached,
+        };
+
+        // Show partial data or final if 3 months not needed
+        if (savedState.isMinimized) {
+          showMinimizedIcon();
+        } else {
+          injectPopup(cachedSpendingData);
+        }
+
+        // Load 3 months if needed
+        if (need3Months) {
+          chrome.runtime.sendMessage({ action: 'GET_SPENDING_3M' }, response3M => {
+            if (response3M && !response3M.error) {
+              cachedSpendingData = {
+                ...cachedSpendingData,
+                total3Months: response3M.total,
+                orderCount3Months: response3M.orderCount,
+                limitReached3Months: response3M.limitReached,
+              };
+
+              const currentPopup = document.getElementById('amz-spending-popup');
+              if (currentPopup && currentPopup.querySelector('#amz-drag-handle')) {
+                injectPopup(cachedSpendingData);
+              }
+            }
+          });
+        }
+      } else if (response30 && response30.error === 'AUTH_REQUIRED') {
+        console.log('Tracker: Authentication required to fetch orders.');
+      }
+    });
+  } else if (need3Months) {
+    // Only need 3 months (30 days already cached or disabled)
+    chrome.runtime.sendMessage({ action: 'GET_SPENDING_3M' }, response3M => {
+      if (response3M && !response3M.error) {
+        cachedSpendingData = {
+          ...cachedSpendingData,
+          total3Months: response3M.total,
+          orderCount3Months: response3M.orderCount,
+          limitReached3Months: response3M.limitReached,
+        };
+
+        if (savedState.isMinimized) {
+          showMinimizedIcon();
+        } else {
+          injectPopup(cachedSpendingData);
+        }
+      } else if (response3M && response3M.error === 'AUTH_REQUIRED') {
+        console.log('Tracker: Authentication required to fetch orders.');
+      }
+    });
+  }
+}
+
 async function init() {
   // Skip if this is a scraping tab opened by background.js
   if (window.location.href.includes('_scraping=1')) return;
@@ -498,54 +594,7 @@ async function init() {
   )
     return;
 
-  const savedState = getPopupState();
-
-  if (!savedState.isMinimized) {
-    showLoadingPopup();
-  }
-
-  // First load: 30 days
-  chrome.runtime.sendMessage({ action: 'GET_SPENDING_30' }, response30 => {
-    if (response30 && !response30.error) {
-      const partialData = {
-        total: response30.total,
-        orderCount: response30.orderCount,
-        limitReached: response30.limitReached,
-        // total3Months is undefined, will show loader
-      };
-
-      if (savedState.isMinimized) {
-        cachedSpendingData = partialData;
-        showMinimizedIcon();
-      } else {
-        injectPopup(partialData);
-      }
-
-      // Second load: 3 months
-      chrome.runtime.sendMessage({ action: 'GET_SPENDING_3M' }, response3M => {
-        if (response3M && !response3M.error) {
-          const fullData = {
-            total: response30.total,
-            orderCount: response30.orderCount,
-            limitReached: response30.limitReached,
-            total3Months: response3M.total,
-            orderCount3Months: response3M.orderCount,
-            limitReached3Months: response3M.limitReached,
-          };
-
-          cachedSpendingData = fullData;
-
-          // Update popup if not minimized
-          const currentPopup = document.getElementById('amz-spending-popup');
-          if (currentPopup && currentPopup.querySelector('#amz-drag-handle')) {
-            injectPopup(fullData);
-          }
-        }
-      });
-    } else if (response30 && response30.error === 'AUTH_REQUIRED') {
-      console.log('Tracker: Authentication required to fetch orders.');
-    }
-  });
+  loadData(true);
 }
 
 init();
