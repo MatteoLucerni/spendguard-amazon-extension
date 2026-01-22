@@ -123,7 +123,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const cached = await chrome.storage.local.get(STORAGE_KEY_30);
       const now = Date.now();
 
-      if (cached[STORAGE_KEY_30] && now - cached[STORAGE_KEY_30].ts < CACHE_TIME) {
+      if (!request.force && cached[STORAGE_KEY_30] && now - cached[STORAGE_KEY_30].ts < CACHE_TIME) {
         console.log('[Amazon Tracker] Using cached data for last 30 days');
         sendResponse({ ...cached[STORAGE_KEY_30].data, updatedAt: cached[STORAGE_KEY_30].ts });
       } else {
@@ -151,7 +151,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const cached = await chrome.storage.local.get(STORAGE_KEY_3M);
       const now = Date.now();
 
-      if (cached[STORAGE_KEY_3M] && now - cached[STORAGE_KEY_3M].ts < CACHE_TIME) {
+      if (!request.force && cached[STORAGE_KEY_3M] && now - cached[STORAGE_KEY_3M].ts < CACHE_TIME) {
         console.log('[Amazon Tracker] Using cached data for last 3 months');
         sendResponse({ ...cached[STORAGE_KEY_3M].data, updatedAt: cached[STORAGE_KEY_3M].ts });
       } else {

@@ -441,6 +441,9 @@ function injectPopup(data) {
       ? `<div style="font-size:10px; color:#ff9900;">⚠ Max 20 pages</div>`
       : '';
 
+  // Refresh icon SVG
+  const refreshIcon = `<svg style="cursor:pointer; flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#767676" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><title>Refresh</title><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`;
+
   // Build 30 days content
   let thirtyDaysContent = '';
   if (settings.show30Days) {
@@ -455,7 +458,10 @@ function injectPopup(data) {
             <span style="color:#565959;">Last 30 days:</span>
             <b style="color:#B12704; font-size:14px;">${Math.round(data.total)} €</b>
           </div>
-          <div style="font-size:11px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''}${time30 ? ` · ${time30}` : ''} ${warning30}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; color:#767676;">${data.orderCount} order${data.orderCount !== 1 ? 's' : ''}${time30 ? ` · ${time30}` : ''} ${warning30}</span>
+            <span id="amz-refresh-30">${refreshIcon}</span>
+          </div>
         </div>`;
   }
 
@@ -473,7 +479,10 @@ function injectPopup(data) {
           <span style="color:#565959;">Last 3 months:</span>
           <b style="color:#B12704; font-size:14px;">${Math.round(data.total3Months)} €</b>
         </div>
-        <div style="font-size:11px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''}${time3M ? ` · ${time3M}` : ''} ${warning3Months}</div>`;
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:#767676;">${data.orderCount3Months} order${data.orderCount3Months !== 1 ? 's' : ''}${time3M ? ` · ${time3M}` : ''} ${warning3Months}</span>
+          <span id="amz-refresh-3m">${refreshIcon}</span>
+        </div>`;
     threeMonthsContent = `<div style="${separator}">${innerContent}</div>`;
   }
 
@@ -508,8 +517,63 @@ function injectPopup(data) {
   document.getElementById('amz-close').onclick = () => showMinimizedIcon();
   document.getElementById('amz-settings').onclick = () => showSettingsView();
 
+  // Refresh handlers
+  const refresh30Btn = document.getElementById('amz-refresh-30');
+  if (refresh30Btn) {
+    refresh30Btn.onclick = () => refreshRange('30');
+  }
+  const refresh3mBtn = document.getElementById('amz-refresh-3m');
+  if (refresh3mBtn) {
+    refresh3mBtn.onclick = () => refreshRange('3m');
+  }
+
   // Use shared draggable setup
   setupDraggable(popup);
+}
+
+// Force refresh a specific range
+function refreshRange(range) {
+  if (range === '30') {
+    // Clear cached 30 days data and show loading state
+    delete cachedSpendingData.total;
+    delete cachedSpendingData.orderCount;
+    delete cachedSpendingData.limitReached;
+    delete cachedSpendingData.updatedAt30;
+    injectPopup(cachedSpendingData);
+
+    chrome.runtime.sendMessage({ action: 'GET_SPENDING_30', force: true }, response => {
+      if (response && !response.error) {
+        cachedSpendingData = {
+          ...cachedSpendingData,
+          total: response.total,
+          orderCount: response.orderCount,
+          limitReached: response.limitReached,
+          updatedAt30: response.updatedAt,
+        };
+        injectPopup(cachedSpendingData);
+      }
+    });
+  } else if (range === '3m') {
+    // Clear cached 3 months data and show loading state
+    delete cachedSpendingData.total3Months;
+    delete cachedSpendingData.orderCount3Months;
+    delete cachedSpendingData.limitReached3Months;
+    delete cachedSpendingData.updatedAt3M;
+    injectPopup(cachedSpendingData);
+
+    chrome.runtime.sendMessage({ action: 'GET_SPENDING_3M', force: true }, response => {
+      if (response && !response.error) {
+        cachedSpendingData = {
+          ...cachedSpendingData,
+          total3Months: response.total,
+          orderCount3Months: response.orderCount,
+          limitReached3Months: response.limitReached,
+          updatedAt3M: response.updatedAt,
+        };
+        injectPopup(cachedSpendingData);
+      }
+    });
+  }
 }
 
 // Load data based on current settings, only fetching what's needed
