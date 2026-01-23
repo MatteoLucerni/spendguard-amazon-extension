@@ -513,7 +513,7 @@ function injectPopup(data) {
   // Calculate height based on enabled ranges
   const enabledCount =
     (settings.show30Days ? 1 : 0) + (settings.show3Months ? 1 : 0);
-  const popupHeight = enabledCount === 2 ? 130 : enabledCount === 1 ? 85 : 90;
+  const popupHeight = enabledCount === 2 ? 140 : enabledCount === 1 ? 90 : 85;
 
   const baseStyle = {
     position: 'fixed',
