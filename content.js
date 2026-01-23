@@ -539,6 +539,64 @@ function injectPopup(data) {
   setupDraggable(popup);
 }
 
+// Show error message in popup
+function showErrorPopup(errorType) {
+  const existing = document.getElementById('amz-spending-popup');
+  if (existing) existing.remove();
+
+  const savedState = getPopupState();
+  const popup = document.createElement('div');
+  popup.id = 'amz-spending-popup';
+
+  const baseStyle = {
+    position: 'fixed',
+    zIndex: '2147483647',
+    backgroundColor: '#ffffff',
+    color: '#0f1111',
+    padding: '0',
+    borderRadius: '8px',
+    boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
+    fontFamily: 'Amazon Ember, Arial, sans-serif',
+    width: '160px',
+    height: '130px',
+    border: '1px solid #d5d9d9',
+    boxSizing: 'border-box',
+    userSelect: 'none',
+  };
+
+  applyPosition(baseStyle, savedState.position, 130);
+  Object.assign(popup.style, baseStyle);
+
+  const errorMessage = errorType === 'TAB_CREATE_FAILED'
+    ? 'Could not open tabs. Please try again.'
+    : 'Error loading data. Please try again.';
+
+  popup.innerHTML = `
+    <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
+      <span>Spendings</span>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <svg id="amz-settings" style="cursor:pointer; padding:0 2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><title>Settings</title><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg id="amz-close" style="cursor:pointer; padding:0 2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><title>Close</title><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div style="padding:12px 8px; font-size:12px; color:#B12704; text-align:center;">
+      <div style="margin-bottom:8px;">${errorMessage}</div>
+      <button id="amz-retry" style="background:#232f3e; color:white; border:none; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:11px;">Retry</button>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  document.getElementById('amz-close').onclick = () => showMinimizedIcon();
+  document.getElementById('amz-settings').onclick = () => showSettingsView();
+  document.getElementById('amz-retry').onclick = () => {
+    cachedSpendingData = {};
+    loadData(true);
+  };
+
+  setupDraggable(popup);
+}
+
 // Force refresh a specific range
 function refreshRange(range) {
   if (range === '30') {
@@ -550,7 +608,9 @@ function refreshRange(range) {
     injectPopup(cachedSpendingData);
 
     chrome.runtime.sendMessage({ action: 'GET_SPENDING_30', force: true }, response => {
-      if (response && !response.error) {
+      if (response && response.error === 'TAB_CREATE_FAILED') {
+        showErrorPopup('TAB_CREATE_FAILED');
+      } else if (response && !response.error) {
         cachedSpendingData = {
           ...cachedSpendingData,
           total: response.total,
@@ -570,7 +630,9 @@ function refreshRange(range) {
     injectPopup(cachedSpendingData);
 
     chrome.runtime.sendMessage({ action: 'GET_SPENDING_3M', force: true }, response => {
-      if (response && !response.error) {
+      if (response && response.error === 'TAB_CREATE_FAILED') {
+        showErrorPopup('TAB_CREATE_FAILED');
+      } else if (response && !response.error) {
         cachedSpendingData = {
           ...cachedSpendingData,
           total3Months: response.total,
@@ -595,6 +657,10 @@ function refreshAll() {
   // Load 30 days if enabled
   if (settings.show30Days) {
     chrome.runtime.sendMessage({ action: 'GET_SPENDING_30', force: true }, response30 => {
+      if (response30 && response30.error === 'TAB_CREATE_FAILED') {
+        showErrorPopup('TAB_CREATE_FAILED');
+        return;
+      }
       if (response30 && !response30.error) {
         cachedSpendingData = {
           ...cachedSpendingData,
@@ -608,6 +674,10 @@ function refreshAll() {
         // Load 3 months if enabled
         if (settings.show3Months) {
           chrome.runtime.sendMessage({ action: 'GET_SPENDING_3M', force: true }, response3M => {
+            if (response3M && response3M.error === 'TAB_CREATE_FAILED') {
+              showErrorPopup('TAB_CREATE_FAILED');
+              return;
+            }
             if (response3M && !response3M.error) {
               cachedSpendingData = {
                 ...cachedSpendingData,
@@ -625,6 +695,10 @@ function refreshAll() {
   } else if (settings.show3Months) {
     // Only 3 months enabled
     chrome.runtime.sendMessage({ action: 'GET_SPENDING_3M', force: true }, response3M => {
+      if (response3M && response3M.error === 'TAB_CREATE_FAILED') {
+        showErrorPopup('TAB_CREATE_FAILED');
+        return;
+      }
       if (response3M && !response3M.error) {
         cachedSpendingData = {
           ...cachedSpendingData,
@@ -686,6 +760,10 @@ function loadData(showLoading = true) {
   // Load 30 days if needed and enabled
   if (need30Days) {
     chrome.runtime.sendMessage({ action: 'GET_SPENDING_30' }, response30 => {
+      if (response30 && response30.error === 'TAB_CREATE_FAILED') {
+        showErrorPopup('TAB_CREATE_FAILED');
+        return;
+      }
       if (response30 && !response30.error) {
         cachedSpendingData = {
           ...cachedSpendingData,
@@ -703,6 +781,10 @@ function loadData(showLoading = true) {
         // Load 3 months if needed
         if (need3Months) {
           chrome.runtime.sendMessage({ action: 'GET_SPENDING_3M' }, response3M => {
+            if (response3M && response3M.error === 'TAB_CREATE_FAILED') {
+              showErrorPopup('TAB_CREATE_FAILED');
+              return;
+            }
             if (response3M && !response3M.error) {
               cachedSpendingData = {
                 ...cachedSpendingData,
@@ -726,6 +808,10 @@ function loadData(showLoading = true) {
   } else if (need3Months) {
     // Only need 3 months (30 days already cached or disabled)
     chrome.runtime.sendMessage({ action: 'GET_SPENDING_3M' }, response3M => {
+      if (response3M && response3M.error === 'TAB_CREATE_FAILED') {
+        showErrorPopup('TAB_CREATE_FAILED');
+        return;
+      }
       if (response3M && !response3M.error) {
         cachedSpendingData = {
           ...cachedSpendingData,

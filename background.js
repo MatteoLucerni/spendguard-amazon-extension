@@ -2,16 +2,39 @@ const STORAGE_KEY_30 = 'amz_spending_cache_30';
 const STORAGE_KEY_3M = 'amz_spending_cache_3m';
 const CACHE_TIME = 1000 * 60 * 60 * 24; // 1 day
 
+async function createTabWithRetry(url, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const tab = await chrome.tabs.create({
+        url: url,
+        active: false,
+      });
+      return tab;
+    } catch (err) {
+      console.log(`[Amazon Tracker] Tab creation attempt ${attempt + 1} failed: ${err.message}`);
+      if (attempt < maxRetries - 1) {
+        // Wait before retrying (exponential backoff: 500ms, 1000ms, 2000ms)
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt)));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
 async function scrapeSinglePage(filter, startIndex = 0) {
   let url = `https://www.amazon.it/your-orders/orders?timeFilter=${filter}&_scraping=1`;
   if (startIndex > 0) {
     url += `&startIndex=${startIndex}`;
   }
 
-  const tab = await chrome.tabs.create({
-    url: url,
-    active: false,
-  });
+  let tab;
+  try {
+    tab = await createTabWithRetry(url);
+  } catch (err) {
+    console.error(`[Amazon Tracker] Failed to create tab after retries: ${err.message}`);
+    return { sum: 0, orderCount: 0, isBlocked: false, error: 'TAB_CREATE_FAILED' };
+  }
 
   return new Promise(resolve => {
     chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
@@ -81,6 +104,10 @@ async function scrapeWithTab(filter) {
   for (let page = 0; page < maxPages; page++) {
     const result = await scrapeSinglePage(filter, startIndex);
 
+    if (result.error === 'TAB_CREATE_FAILED') {
+      return { sum: -1, orderCount: 0, limitReached: false, error: 'TAB_CREATE_FAILED' };
+    }
+
     if (result.isBlocked) {
       return { sum: -1, orderCount: 0, limitReached: false };
     }
@@ -130,7 +157,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log('[Amazon Tracker] Fetching last 30 days...');
         const result = await scrapeWithTab('last30');
         if (result.sum === -1) {
-          sendResponse({ error: 'AUTH_REQUIRED' });
+          if (result.error === 'TAB_CREATE_FAILED') {
+            sendResponse({ error: 'TAB_CREATE_FAILED' });
+          } else {
+            sendResponse({ error: 'AUTH_REQUIRED' });
+          }
           return;
         }
 
@@ -158,7 +189,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log('[Amazon Tracker] Fetching last 3 months...');
         const result = await scrapeWithTab('months-3');
         if (result.sum === -1) {
-          sendResponse({ error: 'AUTH_REQUIRED' });
+          if (result.error === 'TAB_CREATE_FAILED') {
+            sendResponse({ error: 'TAB_CREATE_FAILED' });
+          } else {
+            sendResponse({ error: 'AUTH_REQUIRED' });
+          }
           return;
         }
 
