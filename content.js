@@ -877,15 +877,98 @@ function loadData(showLoading = true) {
   }
 }
 
+// Inject spending alert on checkout page
+function injectCheckoutAlert(spendingAmount, rangeLabel) {
+  // Don't inject if already exists
+  if (document.getElementById('amz-spending-checkout-alert')) return;
+
+  const subtotals = document.getElementById('subtotals');
+  if (!subtotals) return;
+
+  const alertDiv = document.createElement('div');
+  alertDiv.id = 'amz-spending-checkout-alert';
+  Object.assign(alertDiv.style, {
+    backgroundColor: '#fff8e1',
+    border: '1px solid #ff9800',
+    borderRadius: '4px',
+    padding: '12px',
+    marginTop: '12px',
+    fontFamily: 'Amazon Ember, Arial, sans-serif',
+    fontSize: '14px',
+    color: '#5d4037',
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '10px',
+  });
+
+  alertDiv.innerHTML = `
+    <span style="font-size: 20px; line-height: 1;">⚠️</span>
+    <span>Are you sure you want to proceed? ${rangeLabel} you have already spent <strong>${Math.round(spendingAmount)}€</strong></span>
+  `;
+
+  subtotals.parentNode.insertBefore(alertDiv, subtotals.nextSibling);
+}
+
+// Handle checkout page - show spending alert
+function handleCheckoutPage() {
+  // First try to get cached data from storage
+  safeSendMessage({ action: 'GET_SPENDING_30' }, response30 => {
+    if (response30 && !response30.error && response30.total !== undefined) {
+      // We have 30 days data
+      injectCheckoutAlert(response30.total, 'This month');
+      return;
+    }
+
+    // No 30 days data, try 3 months
+    safeSendMessage({ action: 'GET_SPENDING_3M' }, response3M => {
+      if (response3M && !response3M.error && response3M.total !== undefined) {
+        // We have 3 months data
+        injectCheckoutAlert(response3M.total, 'In the last 3 months');
+      }
+      // If no data at all, don't show anything
+    });
+  });
+}
+
+// Observe DOM changes to inject alert when subtotals appears
+function observeCheckoutPage() {
+  // Try immediately first
+  const subtotals = document.getElementById('subtotals');
+  if (subtotals) {
+    handleCheckoutPage();
+    return;
+  }
+
+  // Otherwise observe for DOM changes
+  const observer = new MutationObserver((mutations, obs) => {
+    const subtotals = document.getElementById('subtotals');
+    if (subtotals) {
+      obs.disconnect();
+      handleCheckoutPage();
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  // Timeout after 10 seconds to avoid indefinite observation
+  setTimeout(() => observer.disconnect(), 10000);
+}
+
 async function init() {
   // Skip if this is a scraping tab opened by background.js
   if (window.location.href.includes('_scraping=1')) return;
 
-  if (
-    window.location.href.includes('signin') ||
-    window.location.href.includes('checkout')
-  )
+  // Skip signin pages
+  if (window.location.href.includes('signin')) return;
+
+  // Handle checkout page specially
+  if (window.location.href.includes('checkout')) {
+    observeCheckoutPage();
     return;
+  }
 
   loadData(true);
 }
