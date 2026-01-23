@@ -289,30 +289,6 @@ function showMinimizedIcon() {
   const settings = getSettings();
   const isLoading = isLoading30 || isLoading3M;
 
-  // Icon always goes to bottom-right corner
-  Object.assign(icon.style, {
-    position: 'fixed',
-    bottom: '10px',
-    right: '10px',
-    zIndex: '2147483647',
-    backgroundColor: '#232f3e',
-    color: '#ffffff',
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    border: '2px solid #ffffff',
-    boxSizing: 'border-box',
-    userSelect: 'none',
-  });
-
-  // Determine what to show in the icon
   // Get spending amount from lowest active range
   let spendingAmount = null;
   if (settings.show30Days && cachedSpendingData.total !== undefined) {
@@ -324,8 +300,41 @@ function showMinimizedIcon() {
     spendingAmount = Math.round(cachedSpendingData.total3Months);
   }
 
-  if (isLoading) {
-    // Show spinning dollar when loading
+  // Determine if we need pill shape (for amount) or circle (for $ icon)
+  const showAmount = !isLoading && spendingAmount !== null;
+
+  // Base styles for the icon
+  Object.assign(icon.style, {
+    position: 'fixed',
+    bottom: '10px',
+    right: '10px',
+    zIndex: '2147483647',
+    backgroundColor: '#232f3e',
+    color: '#ffffff',
+    height: '36px',
+    boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    border: '2px solid #ffffff',
+    boxSizing: 'border-box',
+    userSelect: 'none',
+  });
+
+  if (showAmount) {
+    // Pill shape for amount - auto width with padding
+    icon.style.width = 'auto';
+    icon.style.minWidth = '36px';
+    icon.style.padding = '0 10px';
+    icon.style.borderRadius = '18px';
+    icon.innerHTML = `${spendingAmount}€`;
+  } else if (isLoading) {
+    // Circle with spinning € when loading
+    icon.style.width = '36px';
+    icon.style.borderRadius = '50%';
     icon.innerHTML = `
       <style>
         @keyframes amz-icon-spinner {
@@ -333,17 +342,13 @@ function showMinimizedIcon() {
           100% { transform: rotate(360deg); }
         }
       </style>
-      <span style="animation: amz-icon-spinner 1s linear infinite; display: inline-block;">$</span>
+      <span style="animation: amz-icon-spinner 1s linear infinite; display: inline-block;">€</span>
     `;
-  } else if (spendingAmount !== null) {
-    // Show spending amount from lowest active range
-    // Adjust font size based on number of digits
-    const fontSize =
-      spendingAmount >= 1000 ? '9px' : spendingAmount >= 100 ? '11px' : '13px';
-    icon.innerHTML = `<span style="font-size: ${fontSize};">${spendingAmount}</span>`;
   } else {
-    // Show "$" if no data or no ranges are active
-    icon.innerHTML = '$';
+    // Circle with € if no data or no ranges are active
+    icon.style.width = '36px';
+    icon.style.borderRadius = '50%';
+    icon.innerHTML = '€';
   }
 
   icon.onclick = () => {
