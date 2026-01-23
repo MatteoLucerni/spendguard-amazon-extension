@@ -282,7 +282,21 @@ function showMinimizedIcon() {
   const icon = document.createElement('div');
   icon.id = 'amz-spending-popup';
 
-  // Icon always goes to bottom-right corner
+  const settings = getSettings();
+  const isLoading = isLoading30 || isLoading3M;
+
+  // Get spending amount from lowest active range
+  let spendingAmount = null;
+  if (settings.show30Days && cachedSpendingData.total !== undefined) {
+    spendingAmount = Math.round(cachedSpendingData.total);
+  } else if (settings.show3Months && cachedSpendingData.total3Months !== undefined) {
+    spendingAmount = Math.round(cachedSpendingData.total3Months);
+  }
+
+  // Determine if we need pill shape (for amount) or circle (for $ icon)
+  const showAmount = !isLoading && spendingAmount !== null;
+
+  // Base styles for the icon
   Object.assign(icon.style, {
     position: 'fixed',
     bottom: '10px',
@@ -290,22 +304,46 @@ function showMinimizedIcon() {
     zIndex: '2147483647',
     backgroundColor: '#232f3e',
     color: '#ffffff',
-    width: '36px',
     height: '36px',
-    borderRadius: '50%',
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '14px',
     fontWeight: 'bold',
     border: '2px solid #ffffff',
     boxSizing: 'border-box',
     userSelect: 'none',
   });
 
-  icon.innerHTML = '$';
+  if (showAmount) {
+    // Pill shape for amount - auto width with padding
+    icon.style.width = 'auto';
+    icon.style.minWidth = '36px';
+    icon.style.padding = '0 10px';
+    icon.style.borderRadius = '18px';
+    icon.innerHTML = `${spendingAmount}€`;
+  } else if (isLoading) {
+    // Circle with spinning € when loading
+    icon.style.width = '36px';
+    icon.style.borderRadius = '50%';
+    icon.innerHTML = `
+      <style>
+        @keyframes amz-icon-spinner {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+      <span style="animation: amz-icon-spinner 1s linear infinite; display: inline-block;">€</span>
+    `;
+  } else {
+    // Circle with € if no data or no ranges are active
+    icon.style.width = '36px';
+    icon.style.borderRadius = '50%';
+    icon.innerHTML = '€';
+  }
+
   icon.onclick = () => {
     if (cachedSpendingData) {
       injectPopup(cachedSpendingData);
@@ -833,8 +871,10 @@ function loadData(showLoading = true) {
   if (need3Months) isLoading3M = true;
 
   // Show loading only if we have no data at all, otherwise show current data with loader for missing part
-  if (showLoading && !savedState.isMinimized) {
-    if (hasAnyData) {
+  if (showLoading) {
+    if (savedState.isMinimized) {
+      showMinimizedIcon(); // Show icon with loading state
+    } else if (hasAnyData) {
       // Show existing data immediately - injectPopup handles showing loader for missing ranges
       injectPopup(cachedSpendingData);
     } else {
@@ -859,8 +899,11 @@ function loadData(showLoading = true) {
           updatedAt30: response30.updatedAt,
         };
 
-        // Update popup
-        if (!savedState.isMinimized) {
+        // Update popup or icon
+        const currentState = getPopupState();
+        if (currentState.isMinimized) {
+          showMinimizedIcon();
+        } else {
           injectPopup(cachedSpendingData);
         }
 
@@ -881,8 +924,10 @@ function loadData(showLoading = true) {
                 updatedAt3M: response3M.updatedAt,
               };
 
-              const currentPopup = document.getElementById('amz-spending-popup');
-              if (currentPopup && currentPopup.querySelector('#amz-drag-handle')) {
+              const currentState3M = getPopupState();
+              if (currentState3M.isMinimized) {
+                showMinimizedIcon();
+              } else {
                 injectPopup(cachedSpendingData);
               }
             }
@@ -909,7 +954,10 @@ function loadData(showLoading = true) {
           updatedAt3M: response3M.updatedAt,
         };
 
-        if (!savedState.isMinimized) {
+        const currentStateOnly3M = getPopupState();
+        if (currentStateOnly3M.isMinimized) {
+          showMinimizedIcon();
+        } else {
           injectPopup(cachedSpendingData);
         }
       } else if (response3M && response3M.error === 'AUTH_REQUIRED') {
