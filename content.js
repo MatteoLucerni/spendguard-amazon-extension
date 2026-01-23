@@ -282,6 +282,9 @@ function showMinimizedIcon() {
   const icon = document.createElement('div');
   icon.id = 'amz-spending-popup';
 
+  const settings = getSettings();
+  const isLoading = isLoading30 || isLoading3M;
+
   // Icon always goes to bottom-right corner
   Object.assign(icon.style, {
     position: 'fixed',
@@ -305,7 +308,36 @@ function showMinimizedIcon() {
     userSelect: 'none',
   });
 
-  icon.innerHTML = '$';
+  // Determine what to show in the icon
+  // Get spending amount from lowest active range
+  let spendingAmount = null;
+  if (settings.show30Days && cachedSpendingData.total !== undefined) {
+    spendingAmount = Math.round(cachedSpendingData.total);
+  } else if (settings.show3Months && cachedSpendingData.total3Months !== undefined) {
+    spendingAmount = Math.round(cachedSpendingData.total3Months);
+  }
+
+  if (isLoading) {
+    // Show spinning dollar when loading
+    icon.innerHTML = `
+      <style>
+        @keyframes amz-icon-spinner {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+      <span style="animation: amz-icon-spinner 1s linear infinite; display: inline-block;">$</span>
+    `;
+  } else if (spendingAmount !== null) {
+    // Show spending amount from lowest active range
+    // Adjust font size based on number of digits
+    const fontSize = spendingAmount >= 1000 ? '9px' : spendingAmount >= 100 ? '11px' : '13px';
+    icon.innerHTML = `<span style="font-size: ${fontSize};">${spendingAmount}</span>`;
+  } else {
+    // Show "$" if no data or no ranges are active
+    icon.innerHTML = '$';
+  }
+
   icon.onclick = () => {
     if (cachedSpendingData) {
       injectPopup(cachedSpendingData);
@@ -833,8 +865,10 @@ function loadData(showLoading = true) {
   if (need3Months) isLoading3M = true;
 
   // Show loading only if we have no data at all, otherwise show current data with loader for missing part
-  if (showLoading && !savedState.isMinimized) {
-    if (hasAnyData) {
+  if (showLoading) {
+    if (savedState.isMinimized) {
+      showMinimizedIcon(); // Show icon with loading state
+    } else if (hasAnyData) {
       // Show existing data immediately - injectPopup handles showing loader for missing ranges
       injectPopup(cachedSpendingData);
     } else {
@@ -859,8 +893,11 @@ function loadData(showLoading = true) {
           updatedAt30: response30.updatedAt,
         };
 
-        // Update popup
-        if (!savedState.isMinimized) {
+        // Update popup or icon
+        const currentState = getPopupState();
+        if (currentState.isMinimized) {
+          showMinimizedIcon();
+        } else {
           injectPopup(cachedSpendingData);
         }
 
@@ -881,8 +918,10 @@ function loadData(showLoading = true) {
                 updatedAt3M: response3M.updatedAt,
               };
 
-              const currentPopup = document.getElementById('amz-spending-popup');
-              if (currentPopup && currentPopup.querySelector('#amz-drag-handle')) {
+              const currentState3M = getPopupState();
+              if (currentState3M.isMinimized) {
+                showMinimizedIcon();
+              } else {
                 injectPopup(cachedSpendingData);
               }
             }
@@ -909,7 +948,10 @@ function loadData(showLoading = true) {
           updatedAt3M: response3M.updatedAt,
         };
 
-        if (!savedState.isMinimized) {
+        const currentStateOnly3M = getPopupState();
+        if (currentStateOnly3M.isMinimized) {
+          showMinimizedIcon();
+        } else {
           injectPopup(cachedSpendingData);
         }
       } else if (response3M && response3M.error === 'AUTH_REQUIRED') {
