@@ -324,6 +324,9 @@ function showMinimizedIcon() {
     userSelect: 'none',
   });
 
+  // Check if no ranges are enabled
+  const noRangesEnabled = !settings.show30Days && !settings.show3Months;
+
   if (showAmount) {
     // Pill shape for amount - auto width with padding
     icon.style.width = 'auto';
@@ -344,8 +347,21 @@ function showMinimizedIcon() {
       </style>
       <span style="animation: amz-icon-spinner 1s linear infinite; display: inline-block;">€</span>
     `;
+  } else if (noRangesEnabled) {
+    // Circle with blinking ! if no ranges are enabled
+    icon.style.width = '36px';
+    icon.style.borderRadius = '50%';
+    icon.innerHTML = `
+      <style>
+        @keyframes amz-icon-blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+      </style>
+      <span style="animation: amz-icon-blink 1s ease-in-out infinite; font-size: 18px;">!</span>
+    `;
   } else {
-    // Circle with € if no data or no ranges are active
+    // Circle with € if data not yet loaded
     icon.style.width = '36px';
     icon.style.borderRadius = '50%';
     icon.innerHTML = '€';
@@ -497,7 +513,7 @@ function injectPopup(data) {
   // Calculate height based on enabled ranges
   const enabledCount =
     (settings.show30Days ? 1 : 0) + (settings.show3Months ? 1 : 0);
-  const popupHeight = enabledCount === 2 ? 130 : enabledCount === 1 ? 85 : 60;
+  const popupHeight = enabledCount === 2 ? 130 : enabledCount === 1 ? 85 : 75;
 
   const baseStyle = {
     position: 'fixed',
@@ -585,9 +601,10 @@ function injectPopup(data) {
   }
 
   // Message when no ranges are enabled
+  const gearIcon = `<svg style="vertical-align: middle; margin: 0 2px;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0-4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
   const noRangesMessage =
     enabledCount === 0
-      ? `<div style="color:#565959; text-align:center;">No ranges enabled</div>`
+      ? `<div style="color:#565959; text-align:center; line-height: 1.4;">No ranges enabled, click on ${gearIcon} to enable a range</div>`
       : '';
 
   popup.innerHTML = `
@@ -605,7 +622,7 @@ function injectPopup(data) {
                 <svg id="amz-close" style="cursor:pointer; padding:0 2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><title>Close</title><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </div>
         </div>
-        <div style="padding:6px 8px; display:flex; flex-direction:column; gap:4px; font-size:12px;">
+        <div style="padding:8px; display:flex; flex-direction:column; gap:4px; font-size:12px;">
             ${thirtyDaysContent}
             ${threeMonthsContent}
             ${noRangesMessage}
