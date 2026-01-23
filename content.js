@@ -1,5 +1,7 @@
 let cachedSpendingData = {};
 let contextInvalidated = false;
+let isLoading30 = false;
+let isLoading3M = false;
 
 // Safe wrapper for chrome.runtime.sendMessage to handle context invalidation
 function safeSendMessage(message, callback) {
@@ -646,6 +648,10 @@ function showErrorPopup(errorType) {
 // Force refresh a specific range
 function refreshRange(range) {
   if (range === '30') {
+    // Prevent concurrent loading for 30 days
+    if (isLoading30) return;
+    isLoading30 = true;
+
     // Clear cached 30 days data and show loading state
     delete cachedSpendingData.total;
     delete cachedSpendingData.orderCount;
@@ -654,6 +660,7 @@ function refreshRange(range) {
     injectPopup(cachedSpendingData);
 
     safeSendMessage({ action: 'GET_SPENDING_30', force: true }, response => {
+      isLoading30 = false;
       if (response && response.error === 'TAB_CREATE_FAILED') {
         showErrorPopup('TAB_CREATE_FAILED');
       } else if (response && !response.error) {
@@ -668,6 +675,10 @@ function refreshRange(range) {
       }
     });
   } else if (range === '3m') {
+    // Prevent concurrent loading for 3 months
+    if (isLoading3M) return;
+    isLoading3M = true;
+
     // Clear cached 3 months data and show loading state
     delete cachedSpendingData.total3Months;
     delete cachedSpendingData.orderCount3Months;
@@ -676,6 +687,7 @@ function refreshRange(range) {
     injectPopup(cachedSpendingData);
 
     safeSendMessage({ action: 'GET_SPENDING_3M', force: true }, response => {
+      isLoading3M = false;
       if (response && response.error === 'TAB_CREATE_FAILED') {
         showErrorPopup('TAB_CREATE_FAILED');
       } else if (response && !response.error) {
@@ -696,13 +708,34 @@ function refreshRange(range) {
 function refreshAll() {
   const settings = getSettings();
 
-  // Clear all cached data and show loading state
-  cachedSpendingData = {};
+  // Prevent concurrent loading - check if any loading is in progress
+  const will30Load = settings.show30Days && !isLoading30;
+  const will3MLoad = settings.show3Months && !isLoading3M;
+
+  // If nothing can be loaded (either disabled or already loading), return
+  if (!will30Load && !will3MLoad) return;
+
+  // Clear cached data for ranges that will load and show loading state
+  if (will30Load) {
+    isLoading30 = true;
+    delete cachedSpendingData.total;
+    delete cachedSpendingData.orderCount;
+    delete cachedSpendingData.limitReached;
+    delete cachedSpendingData.updatedAt30;
+  }
+  if (will3MLoad) {
+    isLoading3M = true;
+    delete cachedSpendingData.total3Months;
+    delete cachedSpendingData.orderCount3Months;
+    delete cachedSpendingData.limitReached3Months;
+    delete cachedSpendingData.updatedAt3M;
+  }
   injectPopup(cachedSpendingData);
 
-  // Load 30 days if enabled
-  if (settings.show30Days) {
+  // Load 30 days if enabled and not already loading
+  if (will30Load) {
     safeSendMessage({ action: 'GET_SPENDING_30', force: true }, response30 => {
+      isLoading30 = false;
       if (response30 && response30.error === 'TAB_CREATE_FAILED') {
         showErrorPopup('TAB_CREATE_FAILED');
         return;
@@ -717,9 +750,10 @@ function refreshAll() {
         };
         injectPopup(cachedSpendingData);
 
-        // Load 3 months if enabled
-        if (settings.show3Months) {
+        // Load 3 months if enabled and not already loading
+        if (will3MLoad) {
           safeSendMessage({ action: 'GET_SPENDING_3M', force: true }, response3M => {
+            isLoading3M = false;
             if (response3M && response3M.error === 'TAB_CREATE_FAILED') {
               showErrorPopup('TAB_CREATE_FAILED');
               return;
@@ -738,9 +772,10 @@ function refreshAll() {
         }
       }
     });
-  } else if (settings.show3Months) {
+  } else if (will3MLoad) {
     // Only 3 months enabled
     safeSendMessage({ action: 'GET_SPENDING_3M', force: true }, response3M => {
+      isLoading3M = false;
       if (response3M && response3M.error === 'TAB_CREATE_FAILED') {
         showErrorPopup('TAB_CREATE_FAILED');
         return;
@@ -774,16 +809,16 @@ function loadData(showLoading = true) {
     return;
   }
 
-  // Determine what data we need to load
-  const need30Days = settings.show30Days && cachedSpendingData?.total === undefined;
-  const need3Months = settings.show3Months && cachedSpendingData?.total3Months === undefined;
+  // Determine what data we need to load (also check if not already loading)
+  const need30Days = settings.show30Days && cachedSpendingData?.total === undefined && !isLoading30;
+  const need3Months = settings.show3Months && cachedSpendingData?.total3Months === undefined && !isLoading3M;
 
   // Check if we have any data to show already
   const hasData30 = cachedSpendingData?.total !== undefined;
   const hasData3M = cachedSpendingData?.total3Months !== undefined;
   const hasAnyData = hasData30 || hasData3M;
 
-  // If we already have all the data we need, just show it
+  // If we already have all the data we need (or it's loading), just show it
   if (!need30Days && !need3Months) {
     if (savedState.isMinimized) {
       showMinimizedIcon();
@@ -792,6 +827,10 @@ function loadData(showLoading = true) {
     }
     return;
   }
+
+  // Set loading flags for ranges we're about to load
+  if (need30Days) isLoading30 = true;
+  if (need3Months) isLoading3M = true;
 
   // Show loading only if we have no data at all, otherwise show current data with loader for missing part
   if (showLoading && !savedState.isMinimized) {
@@ -806,6 +845,7 @@ function loadData(showLoading = true) {
   // Load 30 days if needed and enabled
   if (need30Days) {
     safeSendMessage({ action: 'GET_SPENDING_30' }, response30 => {
+      isLoading30 = false;
       if (response30 && response30.error === 'TAB_CREATE_FAILED') {
         showErrorPopup('TAB_CREATE_FAILED');
         return;
@@ -824,9 +864,10 @@ function loadData(showLoading = true) {
           injectPopup(cachedSpendingData);
         }
 
-        // Load 3 months if needed
-        if (need3Months) {
+        // Load 3 months if needed (re-check the flag as it might have changed)
+        if (need3Months && isLoading3M) {
           safeSendMessage({ action: 'GET_SPENDING_3M' }, response3M => {
+            isLoading3M = false;
             if (response3M && response3M.error === 'TAB_CREATE_FAILED') {
               showErrorPopup('TAB_CREATE_FAILED');
               return;
@@ -854,6 +895,7 @@ function loadData(showLoading = true) {
   } else if (need3Months) {
     // Only need 3 months (30 days already cached or disabled)
     safeSendMessage({ action: 'GET_SPENDING_3M' }, response3M => {
+      isLoading3M = false;
       if (response3M && response3M.error === 'TAB_CREATE_FAILED') {
         showErrorPopup('TAB_CREATE_FAILED');
         return;
