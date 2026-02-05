@@ -28,5 +28,15 @@
             ],
             "run_at": "document_end"
         }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "assets/images/icons/amz_icon.png"
+            ],
+            "matches": [
+                "https://www.amazon.it/*"
+            ]
+        }
     ]
 }

@@ -43,12 +43,26 @@ function getSettings() {
   try {
     const saved = localStorage.getItem('amz-spending-settings');
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Ensure all settings have defaults
+      return {
+        show30Days: parsed.show30Days !== undefined ? parsed.show30Days : true,
+        show3Months: parsed.show3Months !== undefined ? parsed.show3Months : true,
+        interfaceLockEnabled: parsed.interfaceLockEnabled || false,
+        lockStartTime: parsed.lockStartTime || '09:00',
+        lockEndTime: parsed.lockEndTime || '17:00',
+      };
     }
   } catch (e) {
     console.error('Tracker: Error reading settings', e);
   }
-  return { show30Days: true, show3Months: true };
+  return {
+    show30Days: true,
+    show3Months: true,
+    interfaceLockEnabled: false,
+    lockStartTime: '09:00',
+    lockEndTime: '17:00',
+  };
 }
 
 function saveSettings(settings) {
@@ -71,6 +85,81 @@ function formatRelativeTime(timestamp) {
   return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
+// Show confirmation dialog for enabling interface lock
+function showLockConfirmDialog(onConfirm, onCancel) {
+  // Remove any existing dialog
+  const existingDialog = document.getElementById('amz-lock-confirm-dialog');
+  if (existingDialog) existingDialog.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'amz-lock-confirm-dialog';
+  Object.assign(overlay.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    zIndex: '2147483647',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontFamily: 'Amazon Ember, Arial, sans-serif',
+  });
+
+  overlay.innerHTML = `
+    <div style="background:#fff; border-radius:8px; padding:20px; max-width:300px; box-shadow:0 4px 12px rgba(0,0,0,0.3); text-align:center;">
+      <div style="font-size:16px; font-weight:600; color:#0f1111; margin-bottom:12px;">Enable Interface Lock?</div>
+      <p style="font-size:13px; color:#565959; margin:0 0 20px 0; line-height:1.4;">
+        This will block your access to Amazon during the scheduled time. <strong style="color:#0f1111;">You won't be able to change this setting while locked.</strong>
+      </p>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button id="amz-lock-cancel" style="padding:8px 16px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#0f1111; font-size:13px; cursor:pointer;">Cancel</button>
+        <button id="amz-lock-confirm" style="padding:8px 16px; border:none; border-radius:4px; background:#999; color:#fff; font-size:13px; cursor:not-allowed;" disabled>Enable (3)</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Countdown timer for enable button
+  const confirmBtn = document.getElementById('amz-lock-confirm');
+  let countdown = 3;
+  const countdownInterval = setInterval(() => {
+    countdown--;
+    if (countdown > 0) {
+      confirmBtn.textContent = `Enable (${countdown})`;
+    } else {
+      clearInterval(countdownInterval);
+      confirmBtn.textContent = 'Enable';
+      confirmBtn.disabled = false;
+      confirmBtn.style.background = '#232f3e';
+      confirmBtn.style.cursor = 'pointer';
+    }
+  }, 1000);
+
+  document.getElementById('amz-lock-cancel').onclick = () => {
+    clearInterval(countdownInterval);
+    overlay.remove();
+    if (onCancel) onCancel();
+  };
+
+  confirmBtn.onclick = () => {
+    if (confirmBtn.disabled) return;
+    clearInterval(countdownInterval);
+    overlay.remove();
+    if (onConfirm) onConfirm();
+  };
+
+  // Close on overlay click
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+      if (onCancel) onCancel();
+    }
+  };
+}
+
 function showSettingsView() {
   const currentPosition = getCurrentPopupPosition();
   if (currentPosition) {
@@ -85,6 +174,9 @@ function showSettingsView() {
   const popup = document.createElement('div');
   popup.id = 'amz-spending-popup';
 
+  const settingsWidth = 200;
+  const settingsHeight = 235;
+
   const baseStyle = {
     position: 'fixed',
     zIndex: '2147483647',
@@ -94,15 +186,14 @@ function showSettingsView() {
     borderRadius: '8px',
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     fontFamily: 'Amazon Ember, Arial, sans-serif',
-    width: '160px',
-    height: '130px',
+    width: settingsWidth + 'px',
+    height: settingsHeight + 'px',
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
     userSelect: 'none',
-    overflow: 'hidden',
   };
 
-  applyPosition(baseStyle, savedState.position, 130);
+  applyPosition(baseStyle, savedState.position, settingsHeight, settingsWidth);
   Object.assign(popup.style, baseStyle);
 
   popup.innerHTML = `
@@ -113,6 +204,15 @@ function showSettingsView() {
       .amz-toggle .slider:before { position:absolute; content:""; height:12px; width:12px; left:2px; bottom:2px; background-color:white; transition:.2s; border-radius:50%; }
       .amz-toggle input:checked + .slider { background-color:#4caf50; }
       .amz-toggle input:checked + .slider:before { transform:translateX(12px); }
+      .amz-time-input { width:95px; padding:4px 6px; border:1px solid #d5d9d9; border-radius:4px; font-size:12px; font-family:inherit; }
+      .amz-time-input:focus { outline:none; border-color:#232f3e; }
+      .amz-section-divider { border-top:1px solid #e7e7e7; margin:8px 0; padding-top:8px; }
+      .amz-help-icon { position:relative; display:inline-flex; align-items:center; cursor:help; margin-left:4px; }
+      .amz-help-icon svg { color:#767676; transition:color .2s; }
+      .amz-help-icon:hover svg { color:#232f3e; }
+      .amz-help-tooltip { position:absolute; right:calc(100% + 6px); top:50%; transform:translateY(-50%); background:#232f3e; color:#fff; padding:6px 8px; border-radius:4px; font-size:11px; line-height:1.3; max-width:140px; white-space:normal; opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; z-index:10; pointer-events:none; }
+      .amz-help-icon:hover .amz-help-tooltip { opacity:1; visibility:visible; }
+      .amz-settings-content { overflow:visible; }
     </style>
     <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
       <span>Settings</span>
@@ -121,21 +221,41 @@ function showSettingsView() {
         <svg id="amz-close" style="cursor:pointer; padding:0 2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><title>Close</title><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </div>
     </div>
-    <div style="padding:10px 8px; font-size:12px; display:flex; flex-direction:column; gap:10px;">
+    <div class="amz-settings-content" style="padding:10px 8px; font-size:12px; display:flex; flex-direction:column; gap:8px;">
       <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-        <span>Last 30 days</span>
+        <span style="display:flex; align-items:center;">Last 30 days<span class="amz-help-icon" onclick="event.preventDefault();"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" fill="currentColor" stroke="none" font-size="12" font-weight="600">?</text></svg><span class="amz-help-tooltip">Shows total spent in the last 30 days</span></span></span>
         <div class="amz-toggle">
           <input type="checkbox" id="amz-setting-30days" ${settings.show30Days ? 'checked' : ''}>
           <span class="slider"></span>
         </div>
       </label>
       <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-        <span>Last 3 months</span>
+        <span style="display:flex; align-items:center;">Last 3 months<span class="amz-help-icon" onclick="event.preventDefault();"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" fill="currentColor" stroke="none" font-size="12" font-weight="600">?</text></svg><span class="amz-help-tooltip">Shows total spent in the last 3 months</span></span></span>
         <div class="amz-toggle">
           <input type="checkbox" id="amz-setting-3months" ${settings.show3Months ? 'checked' : ''}>
           <span class="slider"></span>
         </div>
       </label>
+
+      <div class="amz-section-divider">
+        <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+          <span style="display:flex; align-items:center; font-weight:600;">Interface Lock<span class="amz-help-icon" onclick="event.preventDefault();"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" fill="currentColor" stroke="none" font-size="12" font-weight="600">?</text></svg><span class="amz-help-tooltip">Blocks access during set hours to prevent impulse purchases</span></span></span>
+          <div class="amz-toggle">
+            <input type="checkbox" id="amz-setting-lock" ${settings.interfaceLockEnabled ? 'checked' : ''}>
+            <span class="slider"></span>
+          </div>
+        </label>
+        <div id="amz-lock-times" style="margin-top:8px; display:${settings.interfaceLockEnabled ? 'flex' : 'none'}; flex-direction:column; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="color:#565959; font-size:11px; width:32px;">From:</span>
+            <input type="time" id="amz-lock-start" class="amz-time-input" value="${settings.lockStartTime}">
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="color:#565959; font-size:11px; width:32px;">To:</span>
+            <input type="time" id="amz-lock-end" class="amz-time-input" value="${settings.lockEndTime}">
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
@@ -143,31 +263,59 @@ function showSettingsView() {
 
   document.getElementById('amz-close').onclick = () => showMinimizedIcon();
   document.getElementById('amz-back').onclick = () => {
-    // Save settings before going back
-    const newSettings = {
-      show30Days: document.getElementById('amz-setting-30days').checked,
-      show3Months: document.getElementById('amz-setting-3months').checked,
-    };
+    // Save all settings before going back
+    const newSettings = getCurrentSettingsFromForm();
     saveSettings(newSettings);
     // Load data (will fetch missing ranges if newly enabled)
     loadData(true);
   };
 
-  // Auto-save on checkbox change
-  document.getElementById('amz-setting-30days').onchange = () => {
-    const newSettings = {
+  // Helper to get all current settings from the form
+  function getCurrentSettingsFromForm() {
+    return {
       show30Days: document.getElementById('amz-setting-30days').checked,
       show3Months: document.getElementById('amz-setting-3months').checked,
+      interfaceLockEnabled: document.getElementById('amz-setting-lock').checked,
+      lockStartTime: document.getElementById('amz-lock-start').value,
+      lockEndTime: document.getElementById('amz-lock-end').value,
     };
-    saveSettings(newSettings);
+  }
+
+  // Auto-save on any setting change
+  const saveCurrentSettings = () => {
+    saveSettings(getCurrentSettingsFromForm());
   };
-  document.getElementById('amz-setting-3months').onchange = () => {
-    const newSettings = {
-      show30Days: document.getElementById('amz-setting-30days').checked,
-      show3Months: document.getElementById('amz-setting-3months').checked,
-    };
-    saveSettings(newSettings);
+
+  document.getElementById('amz-setting-30days').onchange = saveCurrentSettings;
+  document.getElementById('amz-setting-3months').onchange = saveCurrentSettings;
+
+  // Interface lock toggle - show/hide time inputs with confirmation
+  document.getElementById('amz-setting-lock').onchange = () => {
+    const lockCheckbox = document.getElementById('amz-setting-lock');
+    const lockTimes = document.getElementById('amz-lock-times');
+
+    if (lockCheckbox.checked) {
+      // Show confirmation dialog before enabling
+      showLockConfirmDialog(
+        () => {
+          // Confirmed - show time inputs and save
+          lockTimes.style.display = 'flex';
+          saveCurrentSettings();
+        },
+        () => {
+          // Cancelled - revert checkbox
+          lockCheckbox.checked = false;
+        }
+      );
+    } else {
+      // Disabling - no confirmation needed
+      lockTimes.style.display = 'none';
+      saveCurrentSettings();
+    }
   };
+
+  document.getElementById('amz-lock-start').onchange = saveCurrentSettings;
+  document.getElementById('amz-lock-end').onchange = saveCurrentSettings;
 
   setupDraggable(popup);
 }
@@ -214,7 +362,7 @@ function getCurrentPopupPosition() {
 }
 
 // Apply position to a style object
-function applyPosition(styleObj, position, height = null) {
+function applyPosition(styleObj, position, height = null, width = null) {
   if (
     position &&
     typeof position.left === 'number' &&
@@ -224,6 +372,7 @@ function applyPosition(styleObj, position, height = null) {
       position.left,
       position.top,
       height,
+      width,
     );
     styleObj.left = constrained.left + 'px';
     styleObj.top = constrained.top + 'px';
@@ -234,16 +383,18 @@ function applyPosition(styleObj, position, height = null) {
 }
 
 // Constrain position to viewport bounds
-function constrainToViewport(left, top, height = null) {
+function constrainToViewport(left, top, height = null, width = null) {
   const viewportWidth = document.documentElement.clientWidth;
   const viewportHeight = document.documentElement.clientHeight;
   const margin = 10;
-  const popupWidth = 160;
-  // Use actual popup height if available, otherwise get from DOM or use default
+
+  // Use provided dimensions or get from DOM or use defaults
+  let popupWidth = width;
   let popupHeight = height;
-  if (!popupHeight) {
+  if (!popupWidth || !popupHeight) {
     const popup = document.getElementById('amz-spending-popup');
-    popupHeight = popup ? popup.offsetHeight : 130;
+    if (!popupWidth) popupWidth = popup ? popup.offsetWidth : 160;
+    if (!popupHeight) popupHeight = popup ? popup.offsetHeight : 130;
   }
 
   // Calculate max positions, ensuring they don't go below margin even if viewport is small
@@ -510,10 +661,10 @@ function injectPopup(data) {
   const popup = document.createElement('div');
   popup.id = 'amz-spending-popup';
 
-  // Calculate height based on enabled ranges
+  // Calculate height based on enabled ranges (add extra height for lock status)
   const enabledCount =
     (settings.show30Days ? 1 : 0) + (settings.show3Months ? 1 : 0);
-  const popupHeight = enabledCount === 2 ? 140 : enabledCount === 1 ? 90 : 85;
+  const popupHeight = (enabledCount === 2 ? 140 : enabledCount === 1 ? 90 : 85) + 24;
 
   const baseStyle = {
     position: 'fixed',
@@ -607,6 +758,11 @@ function injectPopup(data) {
       ? `<div style="color:#565959; text-align:center; line-height: 1.4;">No ranges enabled, click on ${gearIcon} to enable a range</div>`
       : '';
 
+  // Lock status message
+  const lockStatusMessage = settings.interfaceLockEnabled
+    ? `<div style="font-size:10px; color:#565959; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">Lock: ${settings.lockStartTime} - ${settings.lockEndTime}</div>`
+    : `<div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">Lock not configured</div>`;
+
   popup.innerHTML = `
         <style>
             @keyframes amz-spinner {
@@ -622,10 +778,11 @@ function injectPopup(data) {
                 <svg id="amz-close" style="cursor:pointer; padding:0 2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><title>Close</title><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </div>
         </div>
-        <div style="padding:8px; display:flex; flex-direction:column; gap:4px; font-size:12px;">
+        <div style="padding:8px 8px 10px 8px; display:flex; flex-direction:column; gap:4px; font-size:12px;">
             ${thirtyDaysContent}
             ${threeMonthsContent}
             ${noRangesMessage}
+            ${lockStatusMessage}
         </div>
     `;
 
@@ -1097,6 +1254,202 @@ function handleCheckoutPage() {
   }
 }
 
+// Interface Lock Functions
+let lockTimerInterval = null;
+
+// Check if current time is within the lock time range
+function isInLockTimeRange(settings) {
+  if (!settings.interfaceLockEnabled) return false;
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const [startHour, startMin] = settings.lockStartTime.split(':').map(Number);
+  const [endHour, endMin] = settings.lockEndTime.split(':').map(Number);
+  const startMinutes = startHour * 60 + startMin;
+  const endMinutes = endHour * 60 + endMin;
+
+  // Handle overnight ranges (e.g., 22:00 to 06:00)
+  if (startMinutes > endMinutes) {
+    return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+  }
+
+  return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+}
+
+// Calculate time remaining until unlock
+function calculateTimeUntilUnlock(settings) {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const currentSeconds = now.getSeconds();
+
+  const [endHour, endMin] = settings.lockEndTime.split(':').map(Number);
+  const [startHour, startMin] = settings.lockStartTime.split(':').map(Number);
+  const startMinutes = startHour * 60 + startMin;
+  const endMinutes = endHour * 60 + endMin;
+
+  let minutesUntilUnlock;
+
+  // Handle overnight ranges
+  if (startMinutes > endMinutes) {
+    if (currentMinutes >= startMinutes) {
+      // After start time, unlock tomorrow at end time
+      minutesUntilUnlock = (24 * 60 - currentMinutes) + endMinutes;
+    } else {
+      // Before end time, unlock today
+      minutesUntilUnlock = endMinutes - currentMinutes;
+    }
+  } else {
+    minutesUntilUnlock = endMinutes - currentMinutes;
+  }
+
+  // Convert to hours, minutes, seconds
+  const totalSeconds = minutesUntilUnlock * 60 - currentSeconds;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { hours, minutes, seconds, totalSeconds };
+}
+
+// Format time for display
+function formatLockTime(hours, minutes, seconds) {
+  const pad = n => n.toString().padStart(2, '0');
+  if (hours > 0) {
+    return `${hours}:${pad(minutes)}:${pad(seconds)}`;
+  }
+  return `${minutes}:${pad(seconds)}`;
+}
+
+// Show the lock overlay
+function showLockOverlay(settings, spendingData) {
+  // Remove any existing overlay
+  const existingOverlay = document.getElementById('amz-lock-overlay');
+  if (existingOverlay) existingOverlay.remove();
+
+  // Also remove spending popup if it exists
+  const existingPopup = document.getElementById('amz-spending-popup');
+  if (existingPopup) existingPopup.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'amz-lock-overlay';
+
+  Object.assign(overlay.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(35, 47, 62, 0.97)',
+    zIndex: '2147483647',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontFamily: 'Amazon Ember, Arial, sans-serif',
+    color: '#ffffff',
+  });
+
+  // Build spending info if available
+  let spendingInfo = '';
+  if (spendingData) {
+    let amount = null;
+    let rangeLabel = '';
+
+    if (spendingData.total !== undefined) {
+      amount = Math.round(spendingData.total);
+      rangeLabel = 'in the last 30 days';
+    } else if (spendingData.total3Months !== undefined) {
+      amount = Math.round(spendingData.total3Months);
+      rangeLabel = 'in the last 3 months';
+    }
+
+    if (amount !== null) {
+      spendingInfo = `
+        <div style="margin-top:50px; text-align:center;">
+          <div style="font-size:16px; color:#ff9900; margin-bottom:16px;">You have spent</div>
+          <div style="font-size:56px; font-weight:700; color:#ff9900; line-height:1;">${amount} €</div>
+          <div style="font-size:15px; color:#a0a0a0; margin-top:12px;">${rangeLabel}</div>
+        </div>
+      `;
+    }
+  }
+
+  const timeLeft = calculateTimeUntilUnlock(settings);
+  const formattedTime = formatLockTime(timeLeft.hours, timeLeft.minutes, timeLeft.seconds);
+
+  overlay.innerHTML = `
+    <style>
+      @keyframes amz-lock-pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.9; }
+      }
+    </style>
+    <div style="text-align:center;">
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#ff9900" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="animation: amz-lock-pulse 2s ease-in-out infinite;">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <h1 style="font-size:28px; font-weight:700; margin:20px 0 10px 0;">Amazon is Locked</h1>
+      <p style="font-size:14px; color:#a0a0a0; margin:0;">Time set: ${settings.lockStartTime} - ${settings.lockEndTime}</p>
+    </div>
+    <div style="margin-top:40px; text-align:center;">
+      <div style="font-size:14px; color:#a0a0a0; margin-bottom:25px;">Unlocks in</div>
+      <div id="amz-lock-timer" style="font-size:64px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:2px;">${formattedTime}</div>
+    </div>
+    ${spendingInfo}
+    <div style="position:absolute; bottom:30px; left:0; right:0; text-align:center;">
+      <img src="${chrome.runtime.getURL('assets/images/icons/amz_icon.png')}" alt="Amazon Spending Tracker" style="width:24px; height:24px; margin-bottom:8px;">
+      <p style="font-size:12px; color:#565959; margin:0;">Amazon Spending Tracker</p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Start the countdown timer
+  startLockTimer(settings);
+}
+
+// Start the countdown timer
+function startLockTimer(settings) {
+  // Clear any existing timer
+  if (lockTimerInterval) {
+    clearInterval(lockTimerInterval);
+  }
+
+  lockTimerInterval = setInterval(() => {
+    const timerElement = document.getElementById('amz-lock-timer');
+    if (!timerElement) {
+      clearInterval(lockTimerInterval);
+      return;
+    }
+
+    // Check if we should still be locked
+    if (!isInLockTimeRange(settings)) {
+      clearInterval(lockTimerInterval);
+      removeLockOverlay();
+      // Re-initialize the normal popup
+      loadData(true);
+      return;
+    }
+
+    const timeLeft = calculateTimeUntilUnlock(settings);
+    timerElement.textContent = formatLockTime(timeLeft.hours, timeLeft.minutes, timeLeft.seconds);
+  }, 1000);
+}
+
+// Remove the lock overlay
+function removeLockOverlay() {
+  const overlay = document.getElementById('amz-lock-overlay');
+  if (overlay) {
+    overlay.remove();
+  }
+  if (lockTimerInterval) {
+    clearInterval(lockTimerInterval);
+    lockTimerInterval = null;
+  }
+}
+
 // Observe DOM changes to inject alert when subtotals appears
 function observeCheckoutPage() {
   // Try immediately first
@@ -1124,12 +1477,60 @@ function observeCheckoutPage() {
   setTimeout(() => observer.disconnect(), 10000);
 }
 
+// Load spending data from cache for lock overlay
+function loadSpendingDataForLock(callback) {
+  const settings = getSettings();
+
+  // Try to get cached data for display on lock screen
+  if (settings.show30Days) {
+    safeSendMessage({ action: 'GET_SPENDING_30', cacheOnly: true }, response30 => {
+      if (response30 && !response30.error && !response30.noCache && response30.total !== undefined) {
+        callback({ total: response30.total });
+        return;
+      }
+      // Try 3 months as fallback
+      if (settings.show3Months) {
+        safeSendMessage({ action: 'GET_SPENDING_3M', cacheOnly: true }, response3M => {
+          if (response3M && !response3M.error && !response3M.noCache && response3M.total !== undefined) {
+            callback({ total3Months: response3M.total });
+          } else {
+            callback(null);
+          }
+        });
+      } else {
+        callback(null);
+      }
+    });
+  } else if (settings.show3Months) {
+    safeSendMessage({ action: 'GET_SPENDING_3M', cacheOnly: true }, response3M => {
+      if (response3M && !response3M.error && !response3M.noCache && response3M.total !== undefined) {
+        callback({ total3Months: response3M.total });
+      } else {
+        callback(null);
+      }
+    });
+  } else {
+    callback(null);
+  }
+}
+
 async function init() {
   // Skip if this is a scraping tab opened by background.js
   if (window.location.href.includes('_scraping=1')) return;
 
   // Skip signin pages
   if (window.location.href.includes('signin')) return;
+
+  const settings = getSettings();
+
+  // Check if interface lock is active
+  if (isInLockTimeRange(settings)) {
+    // Load spending data from cache and show lock overlay
+    loadSpendingDataForLock(spendingData => {
+      showLockOverlay(settings, spendingData);
+    });
+    return;
+  }
 
   // Handle checkout page specially
   if (window.location.href.includes('checkout')) {
