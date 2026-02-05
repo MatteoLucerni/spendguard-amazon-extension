@@ -208,6 +208,11 @@ function showSettingsView() {
       .amz-time-input { width:95px; padding:4px 6px; border:1px solid #d5d9d9; border-radius:4px; font-size:12px; font-family:inherit; }
       .amz-time-input:focus { outline:none; border-color:#232f3e; }
       .amz-section-divider { border-top:1px solid #e7e7e7; margin:8px 0; padding-top:8px; }
+      .amz-help-icon { position:relative; display:inline-flex; align-items:center; cursor:help; margin-left:4px; }
+      .amz-help-icon svg { color:#767676; transition:color .2s; }
+      .amz-help-icon:hover svg { color:#232f3e; }
+      .amz-help-tooltip { position:absolute; right:calc(100% + 6px); top:50%; transform:translateY(-50%); background:#232f3e; color:#fff; padding:6px 8px; border-radius:4px; font-size:11px; line-height:1.3; max-width:140px; white-space:normal; opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; z-index:10; pointer-events:none; }
+      .amz-help-icon:hover .amz-help-tooltip { opacity:1; visibility:visible; }
     </style>
     <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
       <span>Settings</span>
@@ -218,14 +223,14 @@ function showSettingsView() {
     </div>
     <div style="padding:10px 8px; font-size:12px; display:flex; flex-direction:column; gap:8px;">
       <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-        <span>Last 30 days</span>
+        <span style="display:flex; align-items:center;">Last 30 days<span class="amz-help-icon" onclick="event.preventDefault();"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" fill="currentColor" stroke="none" font-size="12" font-weight="600">?</text></svg><span class="amz-help-tooltip">Shows total spent in the last 30 days</span></span></span>
         <div class="amz-toggle">
           <input type="checkbox" id="amz-setting-30days" ${settings.show30Days ? 'checked' : ''}>
           <span class="slider"></span>
         </div>
       </label>
       <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-        <span>Last 3 months</span>
+        <span style="display:flex; align-items:center;">Last 3 months<span class="amz-help-icon" onclick="event.preventDefault();"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" fill="currentColor" stroke="none" font-size="12" font-weight="600">?</text></svg><span class="amz-help-tooltip">Shows total spent in the last 3 months</span></span></span>
         <div class="amz-toggle">
           <input type="checkbox" id="amz-setting-3months" ${settings.show3Months ? 'checked' : ''}>
           <span class="slider"></span>
@@ -234,7 +239,7 @@ function showSettingsView() {
 
       <div class="amz-section-divider">
         <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-          <span style="font-weight:600;">Interface Lock</span>
+          <span style="display:flex; align-items:center; font-weight:600;">Interface Lock<span class="amz-help-icon" onclick="event.preventDefault();"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" fill="currentColor" stroke="none" font-size="12" font-weight="600">?</text></svg><span class="amz-help-tooltip">Blocks access during set hours to prevent impulse purchases</span></span></span>
           <div class="amz-toggle">
             <input type="checkbox" id="amz-setting-lock" ${settings.interfaceLockEnabled ? 'checked' : ''}>
             <span class="slider"></span>
