@@ -191,7 +191,6 @@ function showSettingsView() {
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
     userSelect: 'none',
-    overflow: 'hidden',
   };
 
   applyPosition(baseStyle, savedState.position, settingsHeight, settingsWidth);
@@ -213,6 +212,7 @@ function showSettingsView() {
       .amz-help-icon:hover svg { color:#232f3e; }
       .amz-help-tooltip { position:absolute; right:calc(100% + 6px); top:50%; transform:translateY(-50%); background:#232f3e; color:#fff; padding:6px 8px; border-radius:4px; font-size:11px; line-height:1.3; max-width:140px; white-space:normal; opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; z-index:10; pointer-events:none; }
       .amz-help-icon:hover .amz-help-tooltip { opacity:1; visibility:visible; }
+      .amz-settings-content { overflow:visible; }
     </style>
     <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
       <span>Settings</span>
@@ -221,7 +221,7 @@ function showSettingsView() {
         <svg id="amz-close" style="cursor:pointer; padding:0 2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><title>Close</title><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </div>
     </div>
-    <div style="padding:10px 8px; font-size:12px; display:flex; flex-direction:column; gap:8px;">
+    <div class="amz-settings-content" style="padding:10px 8px; font-size:12px; display:flex; flex-direction:column; gap:8px;">
       <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
         <span style="display:flex; align-items:center;">Last 30 days<span class="amz-help-icon" onclick="event.preventDefault();"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" fill="currentColor" stroke="none" font-size="12" font-weight="600">?</text></svg><span class="amz-help-tooltip">Shows total spent in the last 30 days</span></span></span>
         <div class="amz-toggle">
