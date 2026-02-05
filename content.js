@@ -99,7 +99,7 @@ function showLockConfirmDialog(onConfirm, onCancel) {
     left: '0',
     width: '100vw',
     height: '100vh',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     zIndex: '2147483647',
     display: 'flex',
     justifyContent: 'center',
@@ -111,23 +111,42 @@ function showLockConfirmDialog(onConfirm, onCancel) {
     <div style="background:#fff; border-radius:8px; padding:20px; max-width:300px; box-shadow:0 4px 12px rgba(0,0,0,0.3); text-align:center;">
       <div style="font-size:16px; font-weight:600; color:#0f1111; margin-bottom:12px;">Enable Interface Lock?</div>
       <p style="font-size:13px; color:#565959; margin:0 0 20px 0; line-height:1.4;">
-        This will block your access to Amazon during the scheduled time. You won't be able to change this setting while locked.
+        This will block your access to Amazon during the scheduled time. <strong style="color:#0f1111;">You won't be able to change this setting while locked.</strong>
       </p>
       <div style="display:flex; gap:10px; justify-content:center;">
         <button id="amz-lock-cancel" style="padding:8px 16px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#0f1111; font-size:13px; cursor:pointer;">Cancel</button>
-        <button id="amz-lock-confirm" style="padding:8px 16px; border:none; border-radius:4px; background:#232f3e; color:#fff; font-size:13px; cursor:pointer;">Enable</button>
+        <button id="amz-lock-confirm" style="padding:8px 16px; border:none; border-radius:4px; background:#999; color:#fff; font-size:13px; cursor:not-allowed;" disabled>Enable (3)</button>
       </div>
     </div>
   `;
 
   document.body.appendChild(overlay);
 
+  // Countdown timer for enable button
+  const confirmBtn = document.getElementById('amz-lock-confirm');
+  let countdown = 3;
+  const countdownInterval = setInterval(() => {
+    countdown--;
+    if (countdown > 0) {
+      confirmBtn.textContent = `Enable (${countdown})`;
+    } else {
+      clearInterval(countdownInterval);
+      confirmBtn.textContent = 'Enable';
+      confirmBtn.disabled = false;
+      confirmBtn.style.background = '#232f3e';
+      confirmBtn.style.cursor = 'pointer';
+    }
+  }, 1000);
+
   document.getElementById('amz-lock-cancel').onclick = () => {
+    clearInterval(countdownInterval);
     overlay.remove();
     if (onCancel) onCancel();
   };
 
-  document.getElementById('amz-lock-confirm').onclick = () => {
+  confirmBtn.onclick = () => {
+    if (confirmBtn.disabled) return;
+    clearInterval(countdownInterval);
     overlay.remove();
     if (onConfirm) onConfirm();
   };
@@ -736,8 +755,8 @@ function injectPopup(data) {
 
   // Lock status message
   const lockStatusMessage = settings.interfaceLockEnabled
-    ? `<div style="font-size:10px; color:#565959; text-align:center; border-top:1px solid #e7e7e7; padding-top:6px; margin-top:4px;">Lock: ${settings.lockStartTime} - ${settings.lockEndTime}</div>`
-    : `<div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:6px; margin-top:4px;">Lock not configured</div>`;
+    ? `<div style="font-size:10px; color:#565959; text-align:center; border-top:1px solid #e7e7e7; padding-top:6px; padding-bottom:4px; margin-top:4px;">Lock: ${settings.lockStartTime} - ${settings.lockEndTime}</div>`
+    : `<div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:6px; padding-bottom:4px; margin-top:4px;">Lock not configured</div>`;
 
   popup.innerHTML = `
         <style>
