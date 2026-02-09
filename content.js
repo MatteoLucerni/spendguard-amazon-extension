@@ -791,7 +791,11 @@ function showSettingsView() {
       const enabledCount = (newSettings.show30Days ? 1 : 0) + (newSettings.show3Months ? 1 : 0);
       const mainHeight = (enabledCount === 2 ? 140 : enabledCount === 1 ? 90 : 85) + 24;
       const mainWidth = rc.popupWidth;
-      const adjustedLeft = settingsRect.right - mainWidth;
+      const viewportCenter = document.documentElement.clientWidth / 2;
+      const popupCenter = (settingsRect.left + settingsRect.right) / 2;
+      const adjustedLeft = popupCenter < viewportCenter
+        ? settingsRect.left
+        : settingsRect.right - mainWidth;
       const adjustedTop = settingsRect.bottom - mainHeight;
       settingsPopup.remove();
       savePopupState(false, { left: adjustedLeft, top: adjustedTop });
