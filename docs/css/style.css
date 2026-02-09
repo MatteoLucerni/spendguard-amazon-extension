@@ -99,6 +99,11 @@ img {
     align-items: center;
 }
 
+.header__inner nav {
+    display: flex;
+    align-items: center;
+}
+
 .header__nav a {
     font-size: 0.9375rem;
     font-weight: 500;
@@ -662,6 +667,11 @@ img {
 
 .footer__copy {
     font-size: 0.875rem;
+    width: 100%;
+    text-align: center;
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer__links {
