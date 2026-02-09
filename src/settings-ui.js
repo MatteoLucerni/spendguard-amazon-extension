@@ -61,7 +61,7 @@ function showLockConfirmDialog(onConfirm, onCancel) {
     if (onConfirm) onConfirm();
   };
 
-  overlay.onclick = (e) => {
+  overlay.onclick = e => {
     if (e.target === overlay) {
       clearInterval(countdownInterval);
       overlay.remove();
@@ -174,11 +174,21 @@ function showSettingsView() {
           </div>
         </div>
       </div>
-      <div style="border-top:1px solid #e7e7e7; margin-top:4px; padding-top:8px;">
+      <div style="border-top:1px solid #e7e7e7; margin-top:4px; padding-top:8px; display:flex; flex-direction:column; gap:6px;">
         <button id="amz-replay-tutorial" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:6px 0; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit; transition:background 0.2s;" onmouseover="this.style.background='#f7f7f7'" onmouseout="this.style.background='#fff'">
           ${HELP_ICON_SVG.replace('width="14" height="14"', 'width="12" height="12"')}
           Replay Tutorial
         </button>
+        <div style="display:flex; gap:6px;">
+          <button id="amz-report-bug" style="display:flex; align-items:center; justify-content:center; gap:5px; flex:1; padding:6px 4px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit; transition:background 0.2s; white-space:nowrap;" onmouseover="this.style.background='#f7f7f7'" onmouseout="this.style.background='#fff'">
+            <svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Report Bug
+          </button>
+          <button id="amz-request-feature" style="display:flex; align-items:center; justify-content:center; gap:5px; flex:1; padding:6px 4px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit; transition:background 0.2s; white-space:nowrap;" onmouseover="this.style.background='#f7f7f7'" onmouseout="this.style.background='#fff'">
+            <svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Req. Feature
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -194,8 +204,16 @@ function showSettingsView() {
       () => {
         chrome.storage.local.set({ 'amz-onboarding-completed': true });
         loadData(true);
-      }
+      },
     );
+  };
+
+  document.getElementById('amz-report-bug').onclick = () => {
+    window.open('https://forms.gle/5mCd3hQUQMtsgHEZ9', '_blank');
+  };
+
+  document.getElementById('amz-request-feature').onclick = () => {
+    window.open('https://forms.gle/hqRSiF4PB6L7U6579', '_blank');
   };
 
   document.getElementById('amz-close').onclick = () => showMinimizedIcon();
@@ -245,7 +263,7 @@ function showSettingsView() {
         },
         () => {
           lockCheckbox.checked = false;
-        }
+        },
       );
     } else {
       lockTimes.style.display = 'none';
@@ -267,12 +285,12 @@ function showSettingsView() {
       const vw = document.documentElement.clientWidth;
 
       if (iconRect.left - tooltipWidth - tooltipGap >= 0) {
-        tooltip.style.left = (iconRect.left - tooltipWidth - tooltipGap) + 'px';
+        tooltip.style.left = iconRect.left - tooltipWidth - tooltipGap + 'px';
       } else {
-        tooltip.style.left = (iconRect.right + tooltipGap) + 'px';
+        tooltip.style.left = iconRect.right + tooltipGap + 'px';
       }
 
-      tooltip.style.top = (iconRect.top + iconRect.height / 2) + 'px';
+      tooltip.style.top = iconRect.top + iconRect.height / 2 + 'px';
       tooltip.style.transform = 'translateY(-50%)';
       tooltip.style.opacity = '1';
       tooltip.style.visibility = 'visible';

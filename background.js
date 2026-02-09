@@ -1,5 +1,13 @@
 importScripts('src/constants.js');
 
+chrome.runtime.setUninstallURL('https://forms.gle/xnYk8M4eSxgzgiMT7');
+
+chrome.runtime.onInstalled.addListener(details => {
+  if (details.reason === 'install') {
+    chrome.tabs.create({ url: 'https://getspendguard.com/#features' });
+  }
+});
+
 const CACHE_TIME = 1000 * 60 * 60 * 24;
 
 function getStorageKey(period, domain) {
