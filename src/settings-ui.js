@@ -273,6 +273,13 @@ function showSettingsView() {
         () => {
           lockTimes.style.display = 'flex';
           saveCurrentSettings();
+          const popup = document.getElementById(POPUP_ID);
+          if (popup && popup.style.top) {
+            const rect = popup.getBoundingClientRect();
+            const corrected = constrainToViewport(rect.left, rect.top, popup.offsetHeight, popup.offsetWidth);
+            popup.style.top = corrected.top + 'px';
+            popup.style.left = corrected.left + 'px';
+          }
         },
         () => {
           lockCheckbox.checked = false;
