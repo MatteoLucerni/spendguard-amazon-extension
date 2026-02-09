@@ -21,9 +21,9 @@ function getTotalOrders(allCurrencies, singleOrderCount) {
 
 function getResponsiveConfig() {
   const vw = document.documentElement.clientWidth;
-  if (vw <= 480) return { tier: 'mobile', popupWidth: vw - 20, settingsWidth: vw - 20, maxSettingsHeight: '70vh', draggable: false, tourTooltipMode: 'bottom-sheet', tourTooltipMaxWidth: vw - 32, welcomeMaxWidth: vw - 32, minIconSize: 44 };
-  if (vw <= 768) return { tier: 'tablet', popupWidth: Math.min(Math.max(140, vw * 0.22), 180), settingsWidth: 200, maxSettingsHeight: 'none', draggable: true, tourTooltipMode: 'positioned', tourTooltipMaxWidth: 280, welcomeMaxWidth: 400, minIconSize: 36 };
-  return { tier: 'desktop', popupWidth: 160, settingsWidth: 200, maxSettingsHeight: 'none', draggable: true, tourTooltipMode: 'positioned', tourTooltipMaxWidth: 320, welcomeMaxWidth: 400, minIconSize: 36 };
+  if (vw <= 480) return { tier: 'mobile', popupMinWidth: vw - 20, popupMaxWidth: vw - 20, settingsWidth: vw - 20, maxSettingsHeight: '70vh', draggable: false, tourTooltipMode: 'bottom-sheet', tourTooltipMaxWidth: vw - 32, welcomeMaxWidth: vw - 32, minIconSize: 44 };
+  if (vw <= 768) return { tier: 'tablet', popupMinWidth: 140, popupMaxWidth: 280, settingsWidth: 200, maxSettingsHeight: 'none', draggable: true, tourTooltipMode: 'positioned', tourTooltipMaxWidth: 280, welcomeMaxWidth: 400, minIconSize: 36 };
+  return { tier: 'desktop', popupMinWidth: 160, popupMaxWidth: 320, settingsWidth: 200, maxSettingsHeight: 'none', draggable: true, tourTooltipMode: 'positioned', tourTooltipMaxWidth: 320, welcomeMaxWidth: 400, minIconSize: 36 };
 }
 
 function formatRelativeTime(timestamp) {

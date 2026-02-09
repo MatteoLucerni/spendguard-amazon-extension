@@ -52,6 +52,7 @@ function showMinimizedIcon() {
     icon.style.minWidth = '36px';
     icon.style.padding = '0 10px';
     icon.style.borderRadius = '18px';
+    icon.style.whiteSpace = 'nowrap';
     icon.innerHTML = spendingLabel;
   } else if (isLoading) {
     icon.style.width = '36px';
@@ -109,7 +110,9 @@ function showLoadingPopup() {
     borderRadius: '8px',
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     fontFamily: 'Amazon Ember, Arial, sans-serif',
-    width: rc.popupWidth + 'px',
+    width: 'auto',
+    minWidth: rc.popupMinWidth + 'px',
+    maxWidth: rc.popupMaxWidth + 'px',
     height: '130px',
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
@@ -234,7 +237,6 @@ function injectPopup(data) {
   const enabledCount =
     (settings.show30Days ? 1 : 0) + (settings.show3Months ? 1 : 0);
   const rc = getResponsiveConfig();
-  const popupHeight = (enabledCount === 2 ? 140 : enabledCount === 1 ? 90 : 85) + 24;
 
   const baseStyle = {
     position: 'fixed',
@@ -245,9 +247,11 @@ function injectPopup(data) {
     borderRadius: '8px',
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     fontFamily: 'Amazon Ember, Arial, sans-serif',
-    width: rc.popupWidth + 'px',
+    width: 'auto',
+    minWidth: rc.popupMinWidth + 'px',
+    maxWidth: rc.popupMaxWidth + 'px',
     height: 'auto',
-    minHeight: popupHeight + 'px',
+    minHeight: '85px',
     border: '1px solid #d5d9d9',
     boxSizing: 'border-box',
     userSelect: 'none',
@@ -260,7 +264,7 @@ function injectPopup(data) {
     baseStyle.width = 'auto';
     baseStyle.bottom = '10px';
   } else {
-    applyPosition(baseStyle, savedState.position, popupHeight);
+    applyPosition(baseStyle, savedState.position);
   }
   Object.assign(popup.style, baseStyle);
 
@@ -281,19 +285,19 @@ function injectPopup(data) {
     const time30 = data.updatedAt30 ? formatRelativeTime(data.updatedAt30) : '';
     thirtyDaysContent = is30DaysLoading
       ? `<div>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="color:#565959;">Last 30 days:</span>
-            <div class="amz-skeleton-bar" style="width:50px; height:14px;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:8px;">
+            <span style="color:#565959; white-space:nowrap;">Last 30 days:</span>
+            <div class="amz-skeleton-bar" style="width:50px; height:14px; flex-shrink:0;"></div>
           </div>
           <div style="margin-top:4px;"><div class="amz-skeleton-bar" style="width:80px; height:10px;"></div></div>
         </div>`
       : `<div>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="color:#565959;">Last 30 days:</span>
-            <b style="color:#B12704; font-size:14px;">${formatAmountHtml(data.allCurrencies30, data.total, data.symbol)}</b>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:8px;">
+            <span style="color:#565959; white-space:nowrap;">Last 30 days:</span>
+            <b style="color:#B12704; font-size:14px; white-space:nowrap; flex-shrink:0;">${formatAmountHtml(data.allCurrencies30, data.total, data.symbol)}</b>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:11px; color:#767676;">${getTotalOrders(data.allCurrencies30, data.orderCount)} order${getTotalOrders(data.allCurrencies30, data.orderCount) !== 1 ? 's' : ''}${time30 ? ` · ${time30}` : ''} ${warning30}</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap;">
+            <span style="font-size:11px; color:#767676; white-space:nowrap;">${getTotalOrders(data.allCurrencies30, data.orderCount)} order${getTotalOrders(data.allCurrencies30, data.orderCount) !== 1 ? 's' : ''}${time30 ? ` · ${time30}` : ''} ${warning30}</span>
             <span id="amz-refresh-30">${REFRESH_ICON_SVG}</span>
           </div>
         </div>`;
@@ -307,18 +311,18 @@ function injectPopup(data) {
       : '';
     const innerContent = is3MonthsLoading
       ? `<div>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="color:#565959;">Last 3 months:</span>
-            <div class="amz-skeleton-bar" style="width:50px; height:14px;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:8px;">
+            <span style="color:#565959; white-space:nowrap;">Last 3 months:</span>
+            <div class="amz-skeleton-bar" style="width:50px; height:14px; flex-shrink:0;"></div>
           </div>
           <div style="margin-top:4px;"><div class="amz-skeleton-bar" style="width:80px; height:10px;"></div></div>
         </div>`
-      : `<div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="color:#565959;">Last 3 months:</span>
-          <b style="color:#B12704; font-size:14px;">${formatAmountHtml(data.allCurrencies3M, data.total3Months, data.symbol)}</b>
+      : `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:8px;">
+          <span style="color:#565959; white-space:nowrap;">Last 3 months:</span>
+          <b style="color:#B12704; font-size:14px; white-space:nowrap; flex-shrink:0;">${formatAmountHtml(data.allCurrencies3M, data.total3Months, data.symbol)}</b>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:11px; color:#767676;">${getTotalOrders(data.allCurrencies3M, data.orderCount3Months)} order${getTotalOrders(data.allCurrencies3M, data.orderCount3Months) !== 1 ? 's' : ''}${time3M ? ` · ${time3M}` : ''} ${warning3Months}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap;">
+          <span style="font-size:11px; color:#767676; white-space:nowrap;">${getTotalOrders(data.allCurrencies3M, data.orderCount3Months)} order${getTotalOrders(data.allCurrencies3M, data.orderCount3Months) !== 1 ? 's' : ''}${time3M ? ` · ${time3M}` : ''} ${warning3Months}</span>
           <span id="amz-refresh-3m">${REFRESH_ICON_SVG}</span>
         </div>`;
     threeMonthsContent = `<div style="${separator}">${innerContent}</div>`;
@@ -402,7 +406,9 @@ function showErrorPopup(errorType) {
     borderRadius: '8px',
     boxShadow: '0 2px 5px rgba(15,17,17,0.15)',
     fontFamily: 'Amazon Ember, Arial, sans-serif',
-    width: rc.popupWidth + 'px',
+    width: 'auto',
+    minWidth: rc.popupMinWidth + 'px',
+    maxWidth: rc.popupMaxWidth + 'px',
     minHeight: '130px',
     height: 'auto',
     border: '1px solid #d5d9d9',
@@ -416,7 +422,7 @@ function showErrorPopup(errorType) {
     baseStyle.width = 'auto';
     baseStyle.bottom = '10px';
   } else {
-    applyPosition(baseStyle, savedState.position, 130);
+    applyPosition(baseStyle, savedState.position);
   }
   Object.assign(popup.style, baseStyle);
 

@@ -72,7 +72,7 @@ function constrainToViewport(left, top, height = null, width = null) {
   let popupHeight = height;
   if (!popupWidth || !popupHeight) {
     const popup = document.getElementById(POPUP_ID);
-    if (!popupWidth) popupWidth = popup ? popup.offsetWidth : 160;
+    if (!popupWidth) popupWidth = popup ? popup.offsetWidth : 320;
     if (!popupHeight) popupHeight = popup ? popup.offsetHeight : 130;
   }
 
