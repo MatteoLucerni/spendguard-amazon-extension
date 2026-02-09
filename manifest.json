@@ -24,7 +24,18 @@
                 "https://www.amazon.it/*"
             ],
             "js": [
-                "content.js"
+                "src/constants.js",
+                "src/utils.js",
+                "src/styles.js",
+                "src/settings.js",
+                "src/state.js",
+                "src/popup-ui.js",
+                "src/settings-ui.js",
+                "src/data.js",
+                "src/onboarding.js",
+                "src/checkout.js",
+                "src/lock.js",
+                "src/main.js"
             ],
             "run_at": "document_end"
         }
