@@ -28,15 +28,30 @@ async function aggregateAllDomains(period) {
     byCurrency[curr].orderCount += value.data.orderCount || 0;
   }
 
-  return Object.values(byCurrency);
+  const expiredKeys = [];
+  for (const [key, value] of Object.entries(allData)) {
+    if (!key.startsWith(prefix)) continue;
+    if (value && value.data && now - value.ts > CACHE_TIME) {
+      expiredKeys.push(key);
+    }
+  }
+  if (expiredKeys.length > 0) {
+    chrome.storage.local.remove(expiredKeys);
+  }
+
+  return Object.values(byCurrency).sort((a, b) => b.total - a.total);
 }
 
 function getDomainFromSender(sender) {
   try {
     const url = sender.tab?.url || sender.url || '';
-    if (url) return new URL(url).hostname;
+    if (url) {
+      const hostname = new URL(url).hostname;
+      if (AMAZON_DOMAINS[hostname]) return hostname;
+      console.warn(`[Amazon Tracker] Unknown domain: ${hostname}, ignoring request`);
+    }
   } catch (e) {}
-  return 'www.amazon.com';
+  return null;
 }
 
 async function createTabWithRetry(url, maxRetries = 3) {
@@ -108,6 +123,8 @@ async function scrapeSinglePage(filter, domain, domainConfig, startIndex = 0) {
                         clean = clean.replace(/\./g, '').replace(',', '.');
                       } else if (clean.includes(',')) {
                         clean = clean.replace(',', '.');
+                      } else if (clean.includes('.') && /^\d{1,3}(\.\d{3})+$/.test(clean)) {
+                        clean = clean.replace(/\./g, '');
                       }
                     } else if (priceFormat === 'jp') {
                       clean = clean.replace(/,/g, '');
@@ -167,7 +184,6 @@ async function scrapeWithTab(filter, domain, domainConfig) {
 
     console.log(`[Amazon Tracker] ${filter} - Page ${page + 1}: ${result.orderCount} orders, ${domainConfig.symbol}${result.sum.toFixed(2)}`);
 
-    // Se non ci sono ordini in questa pagina, abbiamo finito
     if (result.orderCount === 0) {
       console.log(`[Amazon Tracker] ${filter} - No more orders found, stopping.`);
       break;
@@ -176,13 +192,11 @@ async function scrapeWithTab(filter, domain, domainConfig) {
     totalSum += result.sum;
     totalOrders += result.orderCount;
 
-    // Amazon mostra 10 ordini per pagina, se ne troviamo meno significa che è l'ultima pagina
     if (result.orderCount < 10) {
       console.log(`[Amazon Tracker] ${filter} - Found less than 10 orders, this is the last page.`);
       break;
     }
 
-    // Se abbiamo raggiunto il limite di pagine
     if (page === maxPages - 1) {
       console.log(`[Amazon Tracker] ${filter} - Reached page limit (${maxPages} pages)`);
       limitReached = true;
@@ -201,6 +215,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'GET_SPENDING_30') {
     (async () => {
       const domain = getDomainFromSender(sender);
+      if (!domain) {
+        sendResponse({ error: 'UNKNOWN_DOMAIN' });
+        return;
+      }
       const domainConfig = getAmazonDomainConfig(domain);
       const storageKey = getStorageKey('30', domain);
       const cached = await chrome.storage.local.get(storageKey);
@@ -264,6 +282,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'GET_SPENDING_3M') {
     (async () => {
       const domain = getDomainFromSender(sender);
+      if (!domain) {
+        sendResponse({ error: 'UNKNOWN_DOMAIN' });
+        return;
+      }
       const domainConfig = getAmazonDomainConfig(domain);
       const storageKey = getStorageKey('3m', domain);
       const cached = await chrome.storage.local.get(storageKey);

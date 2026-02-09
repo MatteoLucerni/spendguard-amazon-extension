@@ -86,20 +86,24 @@ function showLockOverlay(settings, spendingData) {
   if (spendingData) {
     let amount = null;
     let rangeLabel = '';
+    let allCurrencies = null;
 
     if (spendingData.total !== undefined) {
       amount = Math.round(spendingData.total);
       rangeLabel = 'in the last 30 days';
+      allCurrencies = spendingData.allCurrencies;
     } else if (spendingData.total3Months !== undefined) {
       amount = Math.round(spendingData.total3Months);
       rangeLabel = 'in the last 3 months';
+      allCurrencies = spendingData.allCurrencies;
     }
 
     if (amount !== null) {
+      const displayAmount = formatAmountHtml(allCurrencies, amount, getCurrentDomainConfig().symbol);
       spendingInfo = `
         <div style="margin-top:50px; text-align:center;">
           <div style="font-size:clamp(12px, 2vw, 16px); color:#ff9900; margin-bottom:16px;">You have spent</div>
-          <div style="font-size:clamp(28px, 7vw, 56px); font-weight:700; color:#ff9900; line-height:1;">${amount} ${getCurrentDomainConfig().symbol}</div>
+          <div style="font-size:clamp(28px, 7vw, 56px); font-weight:700; color:#ff9900; line-height:1;">${displayAmount}</div>
           <div style="font-size:clamp(12px, 2vw, 15px); color:#a0a0a0; margin-top:12px;">${rangeLabel}</div>
         </div>
       `;
@@ -181,13 +185,13 @@ function loadSpendingDataForLock(callback) {
   if (settings.show30Days) {
     safeSendMessage({ action: 'GET_SPENDING_30', cacheOnly: true }, response30 => {
       if (response30 && !response30.error && !response30.noCache && response30.total !== undefined) {
-        callback({ total: response30.total });
+        callback({ total: response30.total, allCurrencies: response30.allCurrencies });
         return;
       }
       if (settings.show3Months) {
         safeSendMessage({ action: 'GET_SPENDING_3M', cacheOnly: true }, response3M => {
           if (response3M && !response3M.error && !response3M.noCache && response3M.total !== undefined) {
-            callback({ total3Months: response3M.total });
+            callback({ total3Months: response3M.total, allCurrencies: response3M.allCurrencies });
           } else {
             callback(null);
           }
@@ -199,7 +203,7 @@ function loadSpendingDataForLock(callback) {
   } else if (settings.show3Months) {
     safeSendMessage({ action: 'GET_SPENDING_3M', cacheOnly: true }, response3M => {
       if (response3M && !response3M.error && !response3M.noCache && response3M.total !== undefined) {
-        callback({ total3Months: response3M.total });
+        callback({ total3Months: response3M.total, allCurrencies: response3M.allCurrencies });
       } else {
         callback(null);
       }

@@ -1,4 +1,4 @@
-function injectCheckoutAlert(spendingAmount, rangeLabel) {
+function injectCheckoutAlert(spendingAmount, rangeLabel, allCurrencies) {
   if (document.getElementById('amz-spending-checkout-alert')) return;
 
   const subtotals = document.getElementById('subtotals');
@@ -23,7 +23,7 @@ function injectCheckoutAlert(spendingAmount, rangeLabel) {
 
   alertDiv.innerHTML = `
     <span style="font-size: 20px; line-height: 1;">⚠️</span>
-    <span style="flex: 1;">Are you sure you want to proceed? ${rangeLabel} you have already spent <strong>${Math.round(spendingAmount)} ${getCurrentDomainConfig().symbol}</strong></span>
+    <span style="flex: 1;">Are you sure you want to proceed? ${rangeLabel} you have already spent <strong>${formatAmountHtml(allCurrencies, spendingAmount, getCurrentDomainConfig().symbol)}</strong></span>
     <button id="amz-checkout-alert-close" style="background: none; border: none; cursor: pointer; padding: 0; margin: 0; line-height: 1; color: #5d4037; font-size: 18px; opacity: 0.7;" title="Close">×</button>
   `;
 
@@ -50,7 +50,7 @@ function handleCheckoutPage() {
           response3M.total !== undefined &&
           response3M.total > 0
         ) {
-          injectCheckoutAlert(response3M.total, 'In the last 3 months');
+          injectCheckoutAlert(response3M.total, 'In the last 3 months', response3M.allCurrencies);
         }
       },
     );
@@ -67,7 +67,7 @@ function handleCheckoutPage() {
           response30.total !== undefined &&
           response30.total > 0
         ) {
-          injectCheckoutAlert(response30.total, 'This month');
+          injectCheckoutAlert(response30.total, 'This month', response30.allCurrencies, response30.allCurrencies);
           return;
         }
         tryThreeMonths();

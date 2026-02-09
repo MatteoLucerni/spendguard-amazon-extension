@@ -13,17 +13,17 @@ function showMinimizedIcon() {
   const settings = getSettings();
   const isLoading = isLoading30 || isLoading3M;
 
-  let spendingAmount = null;
+  let spendingLabel = null;
   if (settings.show30Days && cachedSpendingData.total !== undefined) {
-    spendingAmount = Math.round(cachedSpendingData.total);
+    spendingLabel = formatAmountHtml(cachedSpendingData.allCurrencies30, cachedSpendingData.total, cachedSpendingData.symbol);
   } else if (
     settings.show3Months &&
     cachedSpendingData.total3Months !== undefined
   ) {
-    spendingAmount = Math.round(cachedSpendingData.total3Months);
+    spendingLabel = formatAmountHtml(cachedSpendingData.allCurrencies3M, cachedSpendingData.total3Months, cachedSpendingData.symbol);
   }
 
-  const showAmount = !isLoading && spendingAmount !== null;
+  const showAmount = !isLoading && spendingLabel !== null;
 
   Object.assign(icon.style, {
     position: 'fixed',
@@ -52,7 +52,7 @@ function showMinimizedIcon() {
     icon.style.minWidth = '36px';
     icon.style.padding = '0 10px';
     icon.style.borderRadius = '18px';
-    icon.innerHTML = `${spendingAmount}${cachedSpendingData.symbol || getCurrentDomainConfig().symbol}`;
+    icon.innerHTML = spendingLabel;
   } else if (isLoading) {
     icon.style.width = '36px';
     icon.style.borderRadius = '50%';
