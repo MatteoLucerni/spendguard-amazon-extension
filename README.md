@@ -32,7 +32,6 @@
 - [Installation](#installation)
 - [How It Works](#how-it-works)
 - [Project Structure](#project-structure)
-- [Architecture](#architecture)
 - [Settings](#settings)
 - [Privacy](#privacy)
 - [Tech Stack](#tech-stack)
@@ -211,53 +210,6 @@ amazon-spending-tracker-extension/
     └── images/
         └── icon.png           # Landing page icon
 ```
-
----
-
-## Architecture
-
-```mermaid
-flowchart TB
-    subgraph AmazonPage["Amazon Page (Content Scripts)"]
-        main["main.js"] --> initSettings["initSettings()"]
-        initSettings --> checkOnboarding["checkOnboardingAndInit()"]
-        checkOnboarding --> Lock["Lock Mode"]
-        checkOnboarding --> Checkout["Checkout Warning"]
-        checkOnboarding --> Normal["Normal Mode"]
-        Lock --> showLock["showLockOverlay()"]
-        Checkout --> injectAlert["injectCheckoutAlert()"]
-        Normal --> injectPopup["injectPopup()"]
-    end
-
-    showLock -- "safeSendMessage()" --> bgHandler
-    injectPopup -- "safeSendMessage()" --> bgHandler
-
-    subgraph ServiceWorker["background.js (Service Worker)"]
-        bgHandler["chrome.runtime.onMessage"] --> cacheCheck{"Check cache\n(24h TTL)"}
-        cacheCheck -- "Cache hit" --> returnCached["Return cached data"]
-        cacheCheck -- "Cache miss" --> scrape["scrapeWithTab()"]
-        scrape --> createTab["Create hidden tab\n(order history page)"]
-        createTab --> waitLoad["Wait for page load"]
-        waitLoad --> parseScript["Execute parse script"]
-        parseScript --> extractTotals["Extract order totals"]
-        extractTotals --> paginate["Paginate (max 200 orders)"]
-        paginate --> closeTab["Close tab"]
-        closeTab --> cacheResult["Cache result"]
-        cacheResult --> returnData["Return to content script"]
-    end
-
-    returnCached --> AmazonPage
-    returnData --> AmazonPage
-```
-
-### Data Storage
-
-| Storage                | Key                                    | Purpose                            |
-| ---------------------- | -------------------------------------- | ---------------------------------- |
-| `chrome.storage.local` | `amz_spending_cache_{period}_{domain}` | Cached spending results (24h TTL)  |
-| `chrome.storage.local` | `amz-spending-settings`                | User preferences                   |
-| `chrome.storage.local` | `amz-onboarding-completed`             | Onboarding completion flag         |
-| `localStorage`         | `amz-popup-state`                      | Popup position and minimized state |
 
 ---
 
