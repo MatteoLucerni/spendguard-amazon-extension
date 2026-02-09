@@ -1,0 +1,21 @@
+{
+    "name": "SpendGuard for Amazon™",
+    "short_name": "SpendGuard",
+    "description": "Track and control your Amazon™ spending across 21 regional domains. Checkout warnings, interface lock, and privacy-first design.",
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#232f3e",
+    "background_color": "#ffffff",
+    "icons": [
+        {
+            "src": "images/icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "images/icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

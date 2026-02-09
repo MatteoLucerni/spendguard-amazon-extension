@@ -1,0 +1,6 @@
+# https://getspendguard.com robots.txt
+
+User-agent: *
+Allow: /
+
+Sitemap: https://getspendguard.com/sitemap.xml
