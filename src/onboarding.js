@@ -119,7 +119,7 @@ function injectDemoPopup() {
       <span>Spendings</span>
       <div id="amz-header-buttons" style="display:flex; align-items:center; gap:4px;">
         ${REFRESH_ICON_HEADER_SVG}
-        ${GEAR_ICON_SVG.replace('id="amz-settings"', 'id="amz-settings"')}
+        ${GEAR_ICON_SVG.replace('<svg ', '<svg id="amz-settings" ')}
         ${CLOSE_ICON_SVG}
       </div>
     </div>
