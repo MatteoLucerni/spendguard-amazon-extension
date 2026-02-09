@@ -32,7 +32,7 @@ function calculateTimeUntilUnlock(settings) {
 
   if (startMinutes > endMinutes) {
     if (currentMinutes >= startMinutes) {
-      minutesUntilUnlock = (24 * 60 - currentMinutes) + endMinutes;
+      minutesUntilUnlock = 24 * 60 - currentMinutes + endMinutes;
     } else {
       minutesUntilUnlock = endMinutes - currentMinutes;
     }
@@ -99,7 +99,11 @@ function showLockOverlay(settings, spendingData) {
     }
 
     if (amount !== null) {
-      const displayAmount = formatAmountHtml(allCurrencies, amount, getCurrentDomainConfig().symbol);
+      const displayAmount = formatAmountHtml(
+        allCurrencies,
+        amount,
+        getCurrentDomainConfig().symbol,
+      );
       spendingInfo = `
         <div style="margin-top:50px; text-align:center;">
           <div style="font-size:clamp(12px, 2vw, 16px); color:#ff9900; margin-bottom:16px;">You have spent</div>
@@ -111,7 +115,11 @@ function showLockOverlay(settings, spendingData) {
   }
 
   const timeLeft = calculateTimeUntilUnlock(settings);
-  const formattedTime = formatLockTime(timeLeft.hours, timeLeft.minutes, timeLeft.seconds);
+  const formattedTime = formatLockTime(
+    timeLeft.hours,
+    timeLeft.minutes,
+    timeLeft.seconds,
+  );
 
   overlay.innerHTML = `
     <style>
@@ -134,8 +142,8 @@ function showLockOverlay(settings, spendingData) {
     </div>
     ${spendingInfo}
     <div style="position:absolute; bottom:clamp(10px, 3vh, 30px); left:0; right:0; text-align:center;">
-      <img src="${chrome.runtime.getURL('assets/images/icons/amz_icon.png')}" alt="Amazon Spending Tracker" style="width:24px; height:24px; margin-bottom:8px;">
-      <p style="font-size:12px; color:#565959; margin:0;">Amazon Spending Tracker</p>
+      <img src="${chrome.runtime.getURL('assets/images/icons/amz_icon.png')}" alt="SpendGuard for Amazon™" style="width:24px; height:24px; margin-bottom:8px;">
+      <p style="font-size:12px; color:#565959; margin:0;">SpendGuard for Amazon™</p>
     </div>
   `;
 
@@ -164,7 +172,11 @@ function startLockTimer(settings) {
     }
 
     const timeLeft = calculateTimeUntilUnlock(settings);
-    timerElement.textContent = formatLockTime(timeLeft.hours, timeLeft.minutes, timeLeft.seconds);
+    timerElement.textContent = formatLockTime(
+      timeLeft.hours,
+      timeLeft.minutes,
+      timeLeft.seconds,
+    );
   }, 1000);
 }
 
@@ -183,31 +195,64 @@ function loadSpendingDataForLock(callback) {
   const settings = getSettings();
 
   if (settings.show30Days) {
-    safeSendMessage({ action: 'GET_SPENDING_30', cacheOnly: true }, response30 => {
-      if (response30 && !response30.error && !response30.noCache && response30.total !== undefined) {
-        callback({ total: response30.total, allCurrencies: response30.allCurrencies });
-        return;
-      }
-      if (settings.show3Months) {
-        safeSendMessage({ action: 'GET_SPENDING_3M', cacheOnly: true }, response3M => {
-          if (response3M && !response3M.error && !response3M.noCache && response3M.total !== undefined) {
-            callback({ total3Months: response3M.total, allCurrencies: response3M.allCurrencies });
-          } else {
-            callback(null);
-          }
-        });
-      } else {
-        callback(null);
-      }
-    });
+    safeSendMessage(
+      { action: 'GET_SPENDING_30', cacheOnly: true },
+      response30 => {
+        if (
+          response30 &&
+          !response30.error &&
+          !response30.noCache &&
+          response30.total !== undefined
+        ) {
+          callback({
+            total: response30.total,
+            allCurrencies: response30.allCurrencies,
+          });
+          return;
+        }
+        if (settings.show3Months) {
+          safeSendMessage(
+            { action: 'GET_SPENDING_3M', cacheOnly: true },
+            response3M => {
+              if (
+                response3M &&
+                !response3M.error &&
+                !response3M.noCache &&
+                response3M.total !== undefined
+              ) {
+                callback({
+                  total3Months: response3M.total,
+                  allCurrencies: response3M.allCurrencies,
+                });
+              } else {
+                callback(null);
+              }
+            },
+          );
+        } else {
+          callback(null);
+        }
+      },
+    );
   } else if (settings.show3Months) {
-    safeSendMessage({ action: 'GET_SPENDING_3M', cacheOnly: true }, response3M => {
-      if (response3M && !response3M.error && !response3M.noCache && response3M.total !== undefined) {
-        callback({ total3Months: response3M.total, allCurrencies: response3M.allCurrencies });
-      } else {
-        callback(null);
-      }
-    });
+    safeSendMessage(
+      { action: 'GET_SPENDING_3M', cacheOnly: true },
+      response3M => {
+        if (
+          response3M &&
+          !response3M.error &&
+          !response3M.noCache &&
+          response3M.total !== undefined
+        ) {
+          callback({
+            total3Months: response3M.total,
+            allCurrencies: response3M.allCurrencies,
+          });
+        } else {
+          callback(null);
+        }
+      },
+    );
   } else {
     callback(null);
   }

@@ -1,6 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Amazon Spending Tracker",
+    "name": "SpendGuard for Amazon™",
+    "short_name": "SpendGuard",
+    "description": "Track and control Amazon™ spending. Floating widget, checkout warnings, time-lock blocking. Privacy-first.",
     "version": "1.0.0",
     "icons": {
         "16": "assets/images/icons/amz_icon.png",

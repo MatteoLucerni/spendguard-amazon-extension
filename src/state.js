@@ -24,7 +24,7 @@ function getPopupState() {
       };
     }
   } catch (e) {
-    console.error('Tracker: Error reading popup state', e);
+    console.error('SpendGuard: Error reading popup state', e);
   }
   return { isMinimized: false, side: 'right' };
 }

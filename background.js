@@ -22,7 +22,12 @@ async function aggregateAllDomains(period) {
     const curr = config.currency;
 
     if (!byCurrency[curr]) {
-      byCurrency[curr] = { total: 0, orderCount: 0, symbol: config.symbol, currency: curr };
+      byCurrency[curr] = {
+        total: 0,
+        orderCount: 0,
+        symbol: config.symbol,
+        currency: curr,
+      };
     }
     byCurrency[curr].total += value.data.total || 0;
     byCurrency[curr].orderCount += value.data.orderCount || 0;
@@ -48,7 +53,9 @@ function getDomainFromSender(sender) {
     if (url) {
       const hostname = new URL(url).hostname;
       if (AMAZON_DOMAINS[hostname]) return hostname;
-      console.warn(`[Amazon Tracker] Unknown domain: ${hostname}, ignoring request`);
+      console.warn(
+        `[SpendGuard] Unknown domain: ${hostname}, ignoring request`,
+      );
     }
   } catch (e) {}
   return null;
@@ -58,23 +65,29 @@ async function createTabWithRetry(url, maxRetries = 3) {
   let lastError = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
-    const result = await chrome.tabs.create({
-      url: url,
-      active: false,
-    }).catch(err => {
-      lastError = err;
-      return null;
-    });
+    const result = await chrome.tabs
+      .create({
+        url: url,
+        active: false,
+      })
+      .catch(err => {
+        lastError = err;
+        return null;
+      });
 
     if (result) {
       return result;
     }
 
-    console.log(`[Amazon Tracker] Tab creation attempt ${attempt + 1} failed: ${lastError?.message}`);
+    console.log(
+      `[SpendGuard] Tab creation attempt ${attempt + 1} failed: ${lastError?.message}`,
+    );
 
     if (attempt < maxRetries - 1) {
       // Wait before retrying (exponential backoff: 500ms, 1000ms, 2000ms)
-      await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt)));
+      await new Promise(resolve =>
+        setTimeout(resolve, 500 * Math.pow(2, attempt)),
+      );
     }
   }
 
@@ -92,8 +105,15 @@ async function scrapeSinglePage(filter, domain, domainConfig, startIndex = 0) {
   try {
     tab = await createTabWithRetry(url);
   } catch (err) {
-    console.error(`[Amazon Tracker] Failed to create tab after retries: ${err.message}`);
-    return { sum: 0, orderCount: 0, isBlocked: false, error: 'TAB_CREATE_FAILED' };
+    console.error(
+      `[SpendGuard] Failed to create tab after retries: ${err.message}`,
+    );
+    return {
+      sum: 0,
+      orderCount: 0,
+      isBlocked: false,
+      error: 'TAB_CREATE_FAILED',
+    };
   }
 
   return new Promise(resolve => {
@@ -123,7 +143,10 @@ async function scrapeSinglePage(filter, domain, domainConfig, startIndex = 0) {
                         clean = clean.replace(/\./g, '').replace(',', '.');
                       } else if (clean.includes(',')) {
                         clean = clean.replace(',', '.');
-                      } else if (clean.includes('.') && /^\d{1,3}(\.\d{3})+$/.test(clean)) {
+                      } else if (
+                        clean.includes('.') &&
+                        /^\d{1,3}(\.\d{3})+$/.test(clean)
+                      ) {
                         clean = clean.replace(/\./g, '');
                       }
                     } else if (priceFormat === 'jp') {
@@ -172,20 +195,32 @@ async function scrapeWithTab(filter, domain, domainConfig) {
   let limitReached = false;
 
   for (let page = 0; page < maxPages; page++) {
-    const result = await scrapeSinglePage(filter, domain, domainConfig, startIndex);
+    const result = await scrapeSinglePage(
+      filter,
+      domain,
+      domainConfig,
+      startIndex,
+    );
 
     if (result.error === 'TAB_CREATE_FAILED') {
-      return { sum: -1, orderCount: 0, limitReached: false, error: 'TAB_CREATE_FAILED' };
+      return {
+        sum: -1,
+        orderCount: 0,
+        limitReached: false,
+        error: 'TAB_CREATE_FAILED',
+      };
     }
 
     if (result.isBlocked) {
       return { sum: -1, orderCount: 0, limitReached: false };
     }
 
-    console.log(`[Amazon Tracker] ${filter} - Page ${page + 1}: ${result.orderCount} orders, ${domainConfig.symbol}${result.sum.toFixed(2)}`);
+    console.log(
+      `[SpendGuard] ${filter} - Page ${page + 1}: ${result.orderCount} orders, ${domainConfig.symbol}${result.sum.toFixed(2)}`,
+    );
 
     if (result.orderCount === 0) {
-      console.log(`[Amazon Tracker] ${filter} - No more orders found, stopping.`);
+      console.log(`[SpendGuard] ${filter} - No more orders found, stopping.`);
       break;
     }
 
@@ -193,12 +228,16 @@ async function scrapeWithTab(filter, domain, domainConfig) {
     totalOrders += result.orderCount;
 
     if (result.orderCount < 10) {
-      console.log(`[Amazon Tracker] ${filter} - Found less than 10 orders, this is the last page.`);
+      console.log(
+        `[SpendGuard] ${filter} - Found less than 10 orders, this is the last page.`,
+      );
       break;
     }
 
     if (page === maxPages - 1) {
-      console.log(`[Amazon Tracker] ${filter} - Reached page limit (${maxPages} pages)`);
+      console.log(
+        `[SpendGuard] ${filter} - Reached page limit (${maxPages} pages)`,
+      );
       limitReached = true;
       break;
     }
@@ -206,7 +245,9 @@ async function scrapeWithTab(filter, domain, domainConfig) {
     startIndex += 10;
   }
 
-  console.log(`[Amazon Tracker] ${filter} TOTAL: ${totalOrders} orders, ${domainConfig.symbol}${totalSum.toFixed(2)}${limitReached ? ' (limit reached)' : ''}`);
+  console.log(
+    `[SpendGuard] ${filter} TOTAL: ${totalOrders} orders, ${domainConfig.symbol}${totalSum.toFixed(2)}${limitReached ? ' (limit reached)' : ''}`,
+  );
 
   return { sum: totalSum, orderCount: totalOrders, limitReached };
 }
@@ -224,32 +265,38 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const cached = await chrome.storage.local.get(storageKey);
       const now = Date.now();
 
-      if (!request.force && cached[storageKey] && now - cached[storageKey].ts < CACHE_TIME) {
-        console.log('[Amazon Tracker] Using cached data for last 30 days');
+      if (
+        !request.force &&
+        cached[storageKey] &&
+        now - cached[storageKey].ts < CACHE_TIME
+      ) {
+        console.log('[SpendGuard] Using cached data for last 30 days');
         const allCurrencies = await aggregateAllDomains('30');
         sendResponse({
           ...cached[storageKey].data,
           updatedAt: cached[storageKey].ts,
           symbol: domainConfig.symbol,
           currency: domainConfig.currency,
-          allCurrencies
+          allCurrencies,
         });
       } else if (request.cacheOnly) {
         const allCurrencies = await aggregateAllDomains('30');
         if (allCurrencies.length > 0) {
-          const currentCurrency = allCurrencies.find(c => c.currency === domainConfig.currency);
+          const currentCurrency = allCurrencies.find(
+            c => c.currency === domainConfig.currency,
+          );
           sendResponse({
             total: currentCurrency ? currentCurrency.total : 0,
             orderCount: currentCurrency ? currentCurrency.orderCount : 0,
             symbol: domainConfig.symbol,
             currency: domainConfig.currency,
-            allCurrencies
+            allCurrencies,
           });
         } else {
           sendResponse({ noCache: true });
         }
       } else {
-        console.log('[Amazon Tracker] Fetching last 30 days...');
+        console.log('[SpendGuard] Fetching last 30 days...');
         const result = await scrapeWithTab('last30', domain, domainConfig);
         if (result.sum === -1) {
           if (result.error === 'TAB_CREATE_FAILED') {
@@ -263,7 +310,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const data = {
           total: result.sum,
           orderCount: result.orderCount,
-          limitReached: result.limitReached
+          limitReached: result.limitReached,
         };
         await chrome.storage.local.set({ [storageKey]: { data, ts: now } });
         const allCurrencies = await aggregateAllDomains('30');
@@ -272,7 +319,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           updatedAt: now,
           symbol: domainConfig.symbol,
           currency: domainConfig.currency,
-          allCurrencies
+          allCurrencies,
         });
       }
     })();
@@ -291,32 +338,38 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const cached = await chrome.storage.local.get(storageKey);
       const now = Date.now();
 
-      if (!request.force && cached[storageKey] && now - cached[storageKey].ts < CACHE_TIME) {
-        console.log('[Amazon Tracker] Using cached data for last 3 months');
+      if (
+        !request.force &&
+        cached[storageKey] &&
+        now - cached[storageKey].ts < CACHE_TIME
+      ) {
+        console.log('[SpendGuard] Using cached data for last 3 months');
         const allCurrencies = await aggregateAllDomains('3m');
         sendResponse({
           ...cached[storageKey].data,
           updatedAt: cached[storageKey].ts,
           symbol: domainConfig.symbol,
           currency: domainConfig.currency,
-          allCurrencies
+          allCurrencies,
         });
       } else if (request.cacheOnly) {
         const allCurrencies = await aggregateAllDomains('3m');
         if (allCurrencies.length > 0) {
-          const currentCurrency = allCurrencies.find(c => c.currency === domainConfig.currency);
+          const currentCurrency = allCurrencies.find(
+            c => c.currency === domainConfig.currency,
+          );
           sendResponse({
             total: currentCurrency ? currentCurrency.total : 0,
             orderCount: currentCurrency ? currentCurrency.orderCount : 0,
             symbol: domainConfig.symbol,
             currency: domainConfig.currency,
-            allCurrencies
+            allCurrencies,
           });
         } else {
           sendResponse({ noCache: true });
         }
       } else {
-        console.log('[Amazon Tracker] Fetching last 3 months...');
+        console.log('[SpendGuard] Fetching last 3 months...');
         const result = await scrapeWithTab('months-3', domain, domainConfig);
         if (result.sum === -1) {
           if (result.error === 'TAB_CREATE_FAILED') {
@@ -330,7 +383,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const data = {
           total: result.sum,
           orderCount: result.orderCount,
-          limitReached: result.limitReached
+          limitReached: result.limitReached,
         };
         await chrome.storage.local.set({ [storageKey]: { data, ts: now } });
         const allCurrencies = await aggregateAllDomains('3m');
@@ -339,7 +392,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           updatedAt: now,
           symbol: domainConfig.symbol,
           currency: domainConfig.currency,
-          allCurrencies
+          allCurrencies,
         });
       }
     })();

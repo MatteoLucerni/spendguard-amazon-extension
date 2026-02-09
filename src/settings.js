@@ -25,9 +25,16 @@ function initSettings(callback) {
     if (result[SETTINGS_KEY]) {
       const parsed = result[SETTINGS_KEY];
       _settingsCache = {
-        show30Days: parsed.show30Days !== undefined ? parsed.show30Days : SETTINGS_DEFAULTS.show30Days,
-        show3Months: parsed.show3Months !== undefined ? parsed.show3Months : SETTINGS_DEFAULTS.show3Months,
-        interfaceLockEnabled: parsed.interfaceLockEnabled || SETTINGS_DEFAULTS.interfaceLockEnabled,
+        show30Days:
+          parsed.show30Days !== undefined
+            ? parsed.show30Days
+            : SETTINGS_DEFAULTS.show30Days,
+        show3Months:
+          parsed.show3Months !== undefined
+            ? parsed.show3Months
+            : SETTINGS_DEFAULTS.show3Months,
+        interfaceLockEnabled:
+          parsed.interfaceLockEnabled || SETTINGS_DEFAULTS.interfaceLockEnabled,
         lockStartTime: parsed.lockStartTime || SETTINGS_DEFAULTS.lockStartTime,
         lockEndTime: parsed.lockEndTime || SETTINGS_DEFAULTS.lockEndTime,
       };
@@ -35,16 +42,25 @@ function initSettings(callback) {
       try {
         const parsed = JSON.parse(legacySaved);
         _settingsCache = {
-          show30Days: parsed.show30Days !== undefined ? parsed.show30Days : SETTINGS_DEFAULTS.show30Days,
-          show3Months: parsed.show3Months !== undefined ? parsed.show3Months : SETTINGS_DEFAULTS.show3Months,
-          interfaceLockEnabled: parsed.interfaceLockEnabled || SETTINGS_DEFAULTS.interfaceLockEnabled,
-          lockStartTime: parsed.lockStartTime || SETTINGS_DEFAULTS.lockStartTime,
+          show30Days:
+            parsed.show30Days !== undefined
+              ? parsed.show30Days
+              : SETTINGS_DEFAULTS.show30Days,
+          show3Months:
+            parsed.show3Months !== undefined
+              ? parsed.show3Months
+              : SETTINGS_DEFAULTS.show3Months,
+          interfaceLockEnabled:
+            parsed.interfaceLockEnabled ||
+            SETTINGS_DEFAULTS.interfaceLockEnabled,
+          lockStartTime:
+            parsed.lockStartTime || SETTINGS_DEFAULTS.lockStartTime,
           lockEndTime: parsed.lockEndTime || SETTINGS_DEFAULTS.lockEndTime,
         };
         chrome.storage.local.set({ [SETTINGS_KEY]: _settingsCache });
         localStorage.removeItem(SETTINGS_KEY);
       } catch (e) {
-        console.error('Tracker: Error migrating legacy settings', e);
+        console.error('SpendGuard: Error migrating legacy settings', e);
       }
     }
     if (callback) callback();

@@ -10,9 +10,9 @@ function showWelcomeGate(onStartTour, onSkip) {
 
   overlay.innerHTML = `
     <div class="amz-welcome-card" style="max-width:${rc.welcomeMaxWidth}px; width:100%;">
-      <img src="${iconUrl}" alt="Amazon Spending Tracker" style="width:48px; height:48px; margin-bottom:16px;">
-      <h2 style="font-size:18px; font-weight:700; color:#0f1111; margin:0 0 8px 0;">Welcome to Amazon Spending Tracker!</h2>
-      <p style="font-size:13px; color:#565959; margin:0 0 24px 0; line-height:1.5;">This extension tracks your Amazon spending and helps you stay on budget. Would you like a quick guided tour?</p>
+      <img src="${iconUrl}" alt="SpendGuard for Amazon™" style="width:48px; height:48px; margin-bottom:16px;">
+      <h2 style="font-size:18px; font-weight:700; color:#0f1111; margin:0 0 8px 0;">Welcome to SpendGuard for Amazon™!</h2>
+      <p style="font-size:13px; color:#565959; margin:0 0 24px 0; line-height:1.5;">This extension tracks your Amazon™ spending and helps you stay on budget. Would you like a quick guided tour?</p>
       <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
         <button id="amz-welcome-start" class="amz-btn-primary" style="width:100%; max-width:220px;">Start Tutorial</button>
         <button id="amz-welcome-skip" class="amz-btn-secondary" style="width:100%; max-width:220px;" disabled>
@@ -44,10 +44,13 @@ function showWelcomeGate(onStartTour, onSkip) {
     } else {
       clearInterval(countdownInterval);
       skipBtn.disabled = false;
-      skipLabel.textContent = "Skip, I got it";
+      skipLabel.textContent = 'Skip, I got it';
       ringNum.textContent = '✓';
-      document.getElementById('amz-skip-ring-progress').style.animation = 'none';
-      document.getElementById('amz-skip-ring-progress').setAttribute('stroke-dashoffset', '113');
+      document.getElementById('amz-skip-ring-progress').style.animation =
+        'none';
+      document
+        .getElementById('amz-skip-ring-progress')
+        .setAttribute('stroke-dashoffset', '113');
     }
   }, 1000);
 
@@ -64,7 +67,7 @@ function showWelcomeGate(onStartTour, onSkip) {
     onSkip();
   };
 
-  const welcomeKeyHandler = (e) => {
+  const welcomeKeyHandler = e => {
     if (e.key === 'Escape' && document.getElementById('amz-welcome-overlay')) {
       if (!skipBtn.disabled) {
         clearInterval(countdownInterval);
@@ -118,7 +121,7 @@ function injectDemoPopup() {
   popup.innerHTML = `
     ${SPINNER_STYLE}
     <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
-      <span>Spendings</span>
+      <span>SpendGuard</span>
       <div id="amz-header-buttons" style="display:flex; align-items:center; gap:4px;">
         ${REFRESH_ICON_HEADER_SVG}
         ${GEAR_ICON_SVG.replace('<svg ', '<svg id="amz-settings" ')}
@@ -157,32 +160,38 @@ const tourSteps = [
   {
     target: null,
     title: 'How It Works',
-    description: 'This extension automatically scans your Amazon orders and shows how much you\'ve spent recently. Here\'s a quick overview of what you\'ll see.',
+    description:
+      "This extension automatically scans your Amazon orders and shows how much you've spent recently. Here's a quick overview of what you'll see.",
   },
   {
     target: '#amz-spending-popup',
     title: 'Your Spending Panel',
-    description: 'This floating panel shows your Amazon spending. You can drag it anywhere on the page by grabbing the header bar.',
+    description:
+      'This floating panel shows your Amazon™ spending. You can drag it anywhere on the page by grabbing the header bar.',
   },
   {
     target: '#amz-popup-body',
     title: 'Spending Breakdown',
-    description: 'See your spending for the last 30 days and 3 months. Each line shows the total amount, number of orders, and last update time.',
+    description:
+      'See your spending for the last 30 days and 3 months. Each line shows the total amount, number of orders, and last update time.',
   },
   {
     target: '#amz-refresh-all',
     title: 'Refreshing Data',
-    description: 'Click this to update your data. A few browser tabs may briefly open and close in the background, that\'s normal! It\'s how we read your orders.',
+    description:
+      "Click this to update your data. A few browser tabs may briefly open and close in the background, that's normal! It's how we read your orders.",
   },
   {
     target: '#amz-settings',
     title: 'Settings',
-    description: 'Customize which time ranges to show. You can also set up an Interface Lock to block Amazon during certain hours and avoid impulse purchases.',
+    description:
+      'Customize which time ranges to show. You can also set up an Interface Lock to block Amazon during certain hours and avoid impulse purchases.',
   },
   {
     target: '#amz-close',
     title: 'Minimize & Restore',
-    description: 'Close the panel to shrink it into a small icon in the corner. Click the icon anytime to bring it back.',
+    description:
+      'Close the panel to shrink it into a small icon in the corner. Click the icon anytime to bring it back.',
   },
 ];
 
@@ -199,7 +208,8 @@ function startTour() {
 
   const backdropEl = document.createElement('div');
   backdropEl.id = 'amz-tour-backdrop';
-  backdropEl.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483645;pointer-events:auto;';
+  backdropEl.style.cssText =
+    'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483645;pointer-events:auto;';
   backdropEl.style.display = 'none';
   document.body.appendChild(backdropEl);
 
@@ -236,10 +246,10 @@ function startTour() {
     const pad = 6;
     Object.assign(spotlightEl.style, {
       display: 'block',
-      left: (rect.left - pad) + 'px',
-      top: (rect.top - pad) + 'px',
-      width: (rect.width + pad * 2) + 'px',
-      height: (rect.height + pad * 2) + 'px',
+      left: rect.left - pad + 'px',
+      top: rect.top - pad + 'px',
+      width: rect.width + pad * 2 + 'px',
+      height: rect.height + pad * 2 + 'px',
     });
     backdropEl.style.display = 'block';
 
@@ -254,7 +264,12 @@ function startTour() {
       tooltip.style.maxWidth = rc.tourTooltipMaxWidth + 'px';
     }
 
-    const dotsHtml = tourSteps.map((_, i) => `<div class="amz-tour-dot ${i === index ? 'amz-tour-dot-active' : ''}"></div>`).join('');
+    const dotsHtml = tourSteps
+      .map(
+        (_, i) =>
+          `<div class="amz-tour-dot ${i === index ? 'amz-tour-dot-active' : ''}"></div>`,
+      )
+      .join('');
 
     tooltip.innerHTML = `
       <div style="padding:16px 18px;">
@@ -292,9 +307,15 @@ function startTour() {
 
     const overlay = document.createElement('div');
     overlay.id = 'amz-tour-center-overlay';
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:2147483646;display:flex;justify-content:center;align-items:center;animation:amz-fadeIn 0.3s ease;';
+    overlay.style.cssText =
+      'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:2147483646;display:flex;justify-content:center;align-items:center;animation:amz-fadeIn 0.3s ease;';
 
-    const dotsHtml = tourSteps.map((_, i) => `<div class="amz-tour-dot ${i === index ? 'amz-tour-dot-active' : ''}"></div>`).join('');
+    const dotsHtml = tourSteps
+      .map(
+        (_, i) =>
+          `<div class="amz-tour-dot ${i === index ? 'amz-tour-dot-active' : ''}"></div>`,
+      )
+      .join('');
     const iconUrl = chrome.runtime.getURL('assets/images/icons/amz_icon.png');
 
     tooltip.style.cssText = `background:#fff; border-radius:12px; padding:24px 20px; text-align:center; max-width:${rc.tourTooltipMaxWidth}px; width:calc(100% - 32px); box-shadow:0 8px 32px rgba(0,0,0,0.3);`;
@@ -315,9 +336,19 @@ function startTour() {
     document.body.appendChild(overlay);
 
     const backBtn = document.getElementById('amz-tour-back');
-    if (backBtn) backBtn.onclick = () => { overlay.remove(); showStep(index - 1); };
-    document.getElementById('amz-tour-next').onclick = () => { overlay.remove(); showStep(index + 1); };
-    document.getElementById('amz-tour-skip').onclick = () => { overlay.remove(); endTour(); };
+    if (backBtn)
+      backBtn.onclick = () => {
+        overlay.remove();
+        showStep(index - 1);
+      };
+    document.getElementById('amz-tour-next').onclick = () => {
+      overlay.remove();
+      showStep(index + 1);
+    };
+    document.getElementById('amz-tour-skip').onclick = () => {
+      overlay.remove();
+      endTour();
+    };
   }
 
   function positionTooltip(tooltip, targetRect) {
@@ -337,16 +368,16 @@ function startTour() {
 
     if (spaceBelow >= th) {
       top = targetRect.bottom + gap;
-      left = targetRect.left + (targetRect.width / 2) - (tw / 2);
+      left = targetRect.left + targetRect.width / 2 - tw / 2;
     } else if (spaceAbove >= th) {
       top = targetRect.top - th - gap;
-      left = targetRect.left + (targetRect.width / 2) - (tw / 2);
+      left = targetRect.left + targetRect.width / 2 - tw / 2;
     } else if (spaceLeft >= tw) {
       left = targetRect.left - tw - gap;
-      top = targetRect.top + (targetRect.height / 2) - (th / 2);
+      top = targetRect.top + targetRect.height / 2 - th / 2;
     } else if (spaceRight >= tw) {
       left = targetRect.right + gap;
-      top = targetRect.top + (targetRect.height / 2) - (th / 2);
+      top = targetRect.top + targetRect.height / 2 - th / 2;
     } else {
       top = Math.max(10, vh - th - 10);
       left = Math.max(10, (vw - tw) / 2);

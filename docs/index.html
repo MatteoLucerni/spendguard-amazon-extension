@@ -1,659 +1,479 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Amazon Spending Tracker, Track Your Amazon Spending</title>
-    <meta
-      name="description"
-      content="A Chrome extension that tracks your Amazon spending across 21 regional domains, warns you at checkout, and helps you stay within budget."
-    />
-    <meta property="og:title" content="Amazon Spending Tracker" />
-    <meta
-      property="og:description"
-      content="Track your Amazon spending across 21 regional domains. Get checkout warnings, set interface locks, and take control of your budget."
-    />
-    <meta property="og:type" content="website" />
-    <meta
-      property="og:url"
-      content="https://matteolucerni.github.io/amazon-spending-tracker-extension/"
-    />
-    <meta
-      property="og:image"
-      content="https://matteolucerni.github.io/amazon-spending-tracker-extension/images/icon.png"
-    />
-    <link rel="icon" type="image/png" href="images/icon.png" />
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <!-- HEADER -->
-    <header class="header">
-      <div class="header__inner">
-        <a href="#" class="header__logo">
-          <img src="images/icon.png" alt="Amazon Spending Tracker icon" />
-          <span>Spending Tracker</span>
-        </a>
-        <ul class="header__nav">
-          <li><a href="#features">Features</a></li>
 
-          <li><a href="#install">Install</a></li>
-          <li><a href="#privacy">Privacy</a></li>
-          <li><a href="#faq">FAQ</a></li>
-          <li>
-            <a
-              href="https://chromewebstore.google.com/detail/ebpikpmmnpjmlcpanakfcgchkdjaanmm"
-              class="header__cta"
-              target="_blank"
-              rel="noopener"
-              >Add to Chrome</a
-            >
-          </li>
-        </ul>
-        <button class="header__mobile-toggle" aria-label="Open menu">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpendGuard for Amazon™ — Track Your Amazon™ Spending</title>
+  <meta name="description"
+    content="A Chrome extension that tracks your Amazon™ spending across 21 regional domains, warns you at checkout, and helps you stay within budget." />
+  <meta property="og:title" content="SpendGuard for Amazon™" />
+  <meta property="og:description"
+    content="Track your Amazon™ spending across 21 regional domains. Get checkout warnings, set interface locks, and take control of your budget." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://matteolucerni.github.io/amazon-spending-tracker-extension/" />
+  <meta property="og:image"
+    content="https://matteolucerni.github.io/amazon-spending-tracker-extension/images/icon.png" />
+  <link rel="icon" type="image/png" href="images/icon.png" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__inner">
+      <a href="#" class="header__logo">
+        <img src="images/icon.png" alt="SpendGuard for Amazon™ icon" />
+        <span>SpendGuard</span>
+      </a>
+      <ul class="header__nav">
+        <li><a href="#features">Features</a></li>
+
+        <li><a href="#install">Install</a></li>
+        <li><a href="#privacy">Privacy</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li>
+          <a href="https://chromewebstore.google.com/detail/ebpikpmmnpjmlcpanakfcgchkdjaanmm" class="header__cta"
+            target="_blank" rel="noopener">Add to Chrome</a>
+        </li>
+      </ul>
+      <button class="header__mobile-toggle" aria-label="Open menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE NAV -->
+  <div class="mobile-nav">
+    <div class="mobile-nav__panel">
+      <button class="mobile-nav__close" aria-label="Close menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+      <ul class="mobile-nav__links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a href="#privacy">Privacy</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li>
+          <a href="https://chromewebstore.google.com/detail/ebpikpmmnpjmlcpanakfcgchkdjaanmm" target="_blank"
+            rel="noopener">Add to Chrome</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__content">
+      <div class="hero__badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+        </svg>
+        Free &amp; Open Source
       </div>
-    </header>
-
-    <!-- MOBILE NAV -->
-    <div class="mobile-nav">
-      <div class="mobile-nav__panel">
-        <button class="mobile-nav__close" aria-label="Close menu">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
+      <h1 class="hero__title">
+        Take Control of Your <span>Amazon Spending</span>
+      </h1>
+      <p class="hero__subtitle">
+        Track how much you spend on Amazon across 21 regional domains. Get
+        warnings at checkout, lock your browsing during set hours, and make
+        smarter purchasing decisions.
+      </p>
+      <div class="hero__actions">
+        <a href="https://chromewebstore.google.com/detail/ebpikpmmnpjmlcpanakfcgchkdjaanmm" class="btn btn--primary"
+          target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-        </button>
-        <ul class="mobile-nav__links">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#install">Install</a></li>
-          <li><a href="#privacy">Privacy</a></li>
-          <li><a href="#faq">FAQ</a></li>
-          <li>
-            <a
-              href="https://chromewebstore.google.com/detail/ebpikpmmnpjmlcpanakfcgchkdjaanmm"
-              target="_blank"
-              rel="noopener"
-              >Add to Chrome</a
-            >
-          </li>
-        </ul>
+          Add to Chrome, It's Free
+        </a>
+        <a href="https://github.com/MatteoLucerni/amazon-spending-tracker-extension" class="btn btn--outline"
+          target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 012-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z" />
+          </svg>
+          View on GitHub
+        </a>
+      </div>
+      <div class="hero__domains">
+        <span>.com</span>
+        <span>.co.uk</span>
+        <span>.de</span>
+        <span>.fr</span>
+        <span>.it</span>
+        <span>.es</span>
+        <span>.co.jp</span>
+        <span>.ca</span>
+        <span>.com.au</span>
+        <span>.in</span>
+        <span>.com.br</span>
+        <span>.nl</span>
+        <span>.se</span>
+        <span>.pl</span>
+        <span>.sg</span>
+        <span>.com.mx</span>
+        <span>.ae</span>
+        <span>.sa</span>
+        <span>.com.tr</span>
+        <span>.eg</span>
+        <span>.com.be</span>
       </div>
     </div>
+  </section>
 
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero__content">
-        <div class="hero__badge">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-            />
-          </svg>
-          Free &amp; Open Source
-        </div>
-        <h1 class="hero__title">
-          Take Control of Your <span>Amazon Spending</span>
-        </h1>
-        <p class="hero__subtitle">
-          Track how much you spend on Amazon across 21 regional domains. Get
-          warnings at checkout, lock your browsing during set hours, and make
-          smarter purchasing decisions.
+  <!-- FEATURES -->
+  <section id="features" class="section">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__label">Features</span>
+        <h2 class="section__title">
+          Everything You Need to Track Your Spending
+        </h2>
+        <p class="section__desc">
+          A comprehensive set of tools designed to give you full visibility
+          into your Amazon purchases and help you build healthier spending
+          habits.
         </p>
-        <div class="hero__actions">
-          <a
-            href="https://chromewebstore.google.com/detail/ebpikpmmnpjmlcpanakfcgchkdjaanmm"
-            class="btn btn--primary"
-            target="_blank"
-            rel="noopener"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Add to Chrome, It's Free
-          </a>
-          <a
-            href="https://github.com/MatteoLucerni/amazon-spending-tracker-extension"
-            class="btn btn--outline"
-            target="_blank"
-            rel="noopener"
-          >
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
-              <path
-                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 012-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"
-              />
-            </svg>
-            View on GitHub
-          </a>
-        </div>
-        <div class="hero__domains">
-          <span>.com</span>
-          <span>.co.uk</span>
-          <span>.de</span>
-          <span>.fr</span>
-          <span>.it</span>
-          <span>.es</span>
-          <span>.co.jp</span>
-          <span>.ca</span>
-          <span>.com.au</span>
-          <span>.in</span>
-          <span>.com.br</span>
-          <span>.nl</span>
-          <span>.se</span>
-          <span>.pl</span>
-          <span>.sg</span>
-          <span>.com.mx</span>
-          <span>.ae</span>
-          <span>.sa</span>
-          <span>.com.tr</span>
-          <span>.eg</span>
-          <span>.com.be</span>
-        </div>
       </div>
-    </section>
-
-    <!-- FEATURES -->
-    <section id="features" class="section">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__label">Features</span>
-          <h2 class="section__title">
-            Everything You Need to Track Your Spending
-          </h2>
-          <p class="section__desc">
-            A comprehensive set of tools designed to give you full visibility
-            into your Amazon purchases and help you build healthier spending
-            habits.
+      <div class="features__grid">
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+            </svg>
+          </div>
+          <h3 class="feature-card__title">21 Amazon Domains</h3>
+          <p class="feature-card__desc">
+            Tracks spending across all major Amazon regional sites, from .com
+            to .co.jp, .de, .it, and more. Aggregates totals by currency
+            automatically.
           </p>
         </div>
-        <div class="features__grid">
-          <div class="feature-card">
-            <div class="feature-card__icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <path
-                  d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"
-                />
-              </svg>
-            </div>
-            <h3 class="feature-card__title">21 Amazon Domains</h3>
-            <p class="feature-card__desc">
-              Tracks spending across all major Amazon regional sites, from .com
-              to .co.jp, .de, .it, and more. Aggregates totals by currency
-              automatically.
-            </p>
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
           </div>
-          <div class="feature-card">
-            <div class="feature-card__icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
-                />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-            </div>
-            <h3 class="feature-card__title">Checkout Warning</h3>
-            <p class="feature-card__desc">
-              Displays a warning banner on Amazon checkout pages showing how
-              much you've already spent, helping you think twice before
-              completing a purchase.
-            </p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card__icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0110 0v4" />
-              </svg>
-            </div>
-            <h3 class="feature-card__title">Interface Lock</h3>
-            <p class="feature-card__desc">
-              Block Amazon access entirely during configurable hours. A
-              full-screen overlay with a countdown timer prevents impulsive
-              browsing and shopping.
-            </p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card__icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                <line x1="8" y1="21" x2="16" y2="21" />
-                <line x1="12" y1="17" x2="12" y2="21" />
-              </svg>
-            </div>
-            <h3 class="feature-card__title">Draggable Popup Widget</h3>
-            <p class="feature-card__desc">
-              A floating on-page widget shows your 30-day and 3-month spending
-              totals. Drag it, minimize it, or position it wherever you prefer.
-            </p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card__icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-            </div>
-            <h3 class="feature-card__title">Smart Caching</h3>
-            <p class="feature-card__desc">
-              Scraped order data is cached for 24 hours to keep things fast.
-              Force-refresh anytime to get the latest numbers instantly.
-            </p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card__icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"
-                />
-              </svg>
-            </div>
-            <h3 class="feature-card__title">Guided Onboarding</h3>
-            <p class="feature-card__desc">
-              A 6-step interactive tutorial walks you through every feature on
-              your first visit, with spotlight highlights and keyboard
-              navigation support.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- INSTALLATION -->
-    <section id="install" class="section">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__label">Get Started</span>
-          <h2 class="section__title">Up and Running in 3 Steps</h2>
-          <p class="section__desc">
-            Install the extension, visit Amazon, and let it work in the
-            background. No configuration required.
+          <h3 class="feature-card__title">Checkout Warning</h3>
+          <p class="feature-card__desc">
+            Displays a warning banner on Amazon checkout pages showing how
+            much you've already spent, helping you think twice before
+            completing a purchase.
           </p>
         </div>
-        <div class="install__steps">
-          <div class="install-step">
-            <div class="install-step__number">1</div>
-            <h3 class="install-step__title">Add to Chrome</h3>
-            <p class="install-step__desc">
-              Click the button above or visit the Chrome Web Store and add
-              Amazon Spending Tracker to your browser.
-            </p>
-          </div>
-          <div class="install-step">
-            <div class="install-step__number">2</div>
-            <h3 class="install-step__title">Visit Amazon</h3>
-            <p class="install-step__desc">
-              Navigate to any of the 21 supported Amazon domains. The extension
-              activates automatically and begins scraping your order history.
-            </p>
-          </div>
-          <div class="install-step">
-            <div class="install-step__number">3</div>
-            <h3 class="install-step__title">Track Your Spending</h3>
-            <p class="install-step__desc">
-              View your 30-day and 3-month totals in the floating widget. Enable
-              checkout warnings and interface lock for extra control.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PRIVACY -->
-    <section id="privacy" class="section section--alt">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__label">Privacy</span>
-          <h2 class="section__title">Your Data Stays With You</h2>
-        </div>
-        <div class="privacy__card">
-          <div class="privacy__icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
             </svg>
           </div>
-          <div>
-            <h3 class="privacy__title">100% Local, Zero Tracking</h3>
-            <p class="privacy__text">
-              Amazon Spending Tracker processes everything locally on your
-              machine. Your order data is stored exclusively in Chrome's local
-              storage and is never sent to any external server. There is no
-              analytics, no telemetry, and no data collection of any kind.
-            </p>
-            <ul class="privacy__list">
-              <li>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                No external servers
-              </li>
-              <li>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                No analytics or tracking
-              </li>
-              <li>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                No personal data collected
-              </li>
-              <li>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Open source &amp; auditable
-              </li>
-            </ul>
-          </div>
+          <h3 class="feature-card__title">Interface Lock</h3>
+          <p class="feature-card__desc">
+            Block Amazon access entirely during configurable hours. A
+            full-screen overlay with a countdown timer prevents impulsive
+            browsing and shopping.
+          </p>
         </div>
-      </div>
-    </section>
-
-    <!-- FAQ -->
-    <section id="faq" class="section">
-      <div class="container">
-        <div class="section__header">
-          <span class="section__label">FAQ</span>
-          <h2 class="section__title">Frequently Asked Questions</h2>
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Draggable Popup Widget</h3>
+          <p class="feature-card__desc">
+            A floating on-page widget shows your 30-day and 3-month spending
+            totals. Drag it, minimize it, or position it wherever you prefer.
+          </p>
         </div>
-        <div class="faq__list">
-          <div class="faq-item">
-            <button class="faq-item__question">
-              Which Amazon sites are supported?
-              <svg
-                class="faq-item__icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            <div class="faq-item__answer">
-              <div class="faq-item__answer-inner">
-                The extension supports 21 Amazon regional domains: .com, .co.uk,
-                .de, .fr, .it, .es, .co.jp, .ca, .com.au, .in, .com.br, .nl,
-                .se, .pl, .sg, .com.mx, .ae, .sa, .com.tr, .eg, and .com.be.
-                Spending is aggregated by currency when you shop across multiple
-                sites.
-              </div>
-            </div>
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
           </div>
-          <div class="faq-item">
-            <button class="faq-item__question">
-              How is my spending data stored?
-              <svg
-                class="faq-item__icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            <div class="faq-item__answer">
-              <div class="faq-item__answer-inner">
-                All data is stored locally in Chrome's built-in storage
-                (chrome.storage.local). Nothing is ever sent to any external
-                server. Order amounts are cached for 24 hours to keep the
-                extension fast and avoid repeated scraping.
-              </div>
-            </div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-item__question">
-              How do I refresh my spending data?
-              <svg
-                class="faq-item__icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            <div class="faq-item__answer">
-              <div class="faq-item__answer-inner">
-                Data refreshes automatically every 24 hours. You can also force
-                a manual refresh by clicking the refresh icon on any time range
-                in the popup widget, or refresh all ranges at once using the
-                button in the header.
-              </div>
-            </div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-item__question">
-              What is the Interface Lock feature?
-              <svg
-                class="faq-item__icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            <div class="faq-item__answer">
-              <div class="faq-item__answer-inner">
-                Interface Lock lets you block Amazon access during specific
-                hours (e.g., 9 AM to 5 PM). When active, a full-screen overlay
-                replaces the page with a countdown timer showing when access
-                resumes. Settings cannot be changed while the lock is active, so
-                you can't cheat your way around it.
-              </div>
-            </div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-item__question">
-              Does it work with Amazon Prime orders?
-              <svg
-                class="faq-item__icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            <div class="faq-item__answer">
-              <div class="faq-item__answer-inner">
-                Yes. The extension reads your order history directly from
-                Amazon's order pages, which includes all orders, Prime,
-                standard, digital, and physical. Any order that appears in your
-                Amazon order history will be tracked.
-              </div>
-            </div>
-          </div>
+          <h3 class="feature-card__title">Smart Caching</h3>
+          <p class="feature-card__desc">
+            Scraped order data is cached for 24 hours to keep things fast.
+            Force-refresh anytime to get the latest numbers instantly.
+          </p>
         </div>
-      </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer class="footer">
-      <div class="footer__inner">
-        <div class="footer__brand">
-          <img src="images/icon.png" alt="Amazon Spending Tracker" />
-          <span>Amazon Spending Tracker</span>
-        </div>
-        <div class="footer__links">
-          <a
-            href="https://www.linkedin.com/in/matteo-lucerni-0725a526b"
-            class="footer__link"
-            target="_blank"
-            rel="noopener"
-            aria-label="LinkedIn"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor">
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
               <path
-                d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
-              />
+                d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
             </svg>
-          </a>
-          <a
-            href="https://github.com/MatteoLucerni"
-            class="footer__link"
-            target="_blank"
-            rel="noopener"
-            aria-label="GitHub"
-          >
-            <svg viewBox="0 0 16 16" fill="currentColor">
-              <path
-                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 012-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"
-              />
-            </svg>
-          </a>
-          <a
-            href="https://github.com/MatteoLucerni/amazon-spending-tracker-extension"
-            class="footer__link"
-            target="_blank"
-            rel="noopener"
-            aria-label="Repository"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"
-              />
-            </svg>
-          </a>
+          </div>
+          <h3 class="feature-card__title">Guided Onboarding</h3>
+          <p class="feature-card__desc">
+            A 6-step interactive tutorial walks you through every feature on
+            your first visit, with spotlight highlights and keyboard
+            navigation support.
+          </p>
         </div>
       </div>
-    </footer>
+    </div>
+  </section>
 
-    <script src="js/main.js"></script>
-  </body>
+  <!-- INSTALLATION -->
+  <section id="install" class="section">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__label">Get Started</span>
+        <h2 class="section__title">Up and Running in 3 Steps</h2>
+        <p class="section__desc">
+          Install the extension, visit Amazon, and let it work in the
+          background. No configuration required.
+        </p>
+      </div>
+      <div class="install__steps">
+        <div class="install-step">
+          <div class="install-step__number">1</div>
+          <h3 class="install-step__title">Add to Chrome</h3>
+          <p class="install-step__desc">
+            Click the button above or visit the Chrome Web Store and add
+            SpendGuard for Amazon™ to your browser.
+          </p>
+        </div>
+        <div class="install-step">
+          <div class="install-step__number">2</div>
+          <h3 class="install-step__title">Visit Amazon</h3>
+          <p class="install-step__desc">
+            Navigate to any of the 21 supported Amazon domains. The extension
+            activates automatically and begins scraping your order history.
+          </p>
+        </div>
+        <div class="install-step">
+          <div class="install-step__number">3</div>
+          <h3 class="install-step__title">Track Your Spending</h3>
+          <p class="install-step__desc">
+            View your 30-day and 3-month totals in the floating widget. Enable
+            checkout warnings and interface lock for extra control.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section id="privacy" class="section section--alt">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__label">Privacy</span>
+        <h2 class="section__title">Your Data Stays With You</h2>
+      </div>
+      <div class="privacy__card">
+        <div class="privacy__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="privacy__title">100% Local, Zero Tracking</h3>
+          <p class="privacy__text">
+            SpendGuard for Amazon™ processes everything locally on your
+            machine. Your order data is stored exclusively in Chrome's local
+            storage and is never sent to any external server. There is no
+            analytics, no telemetry, and no data collection of any kind.
+          </p>
+          <ul class="privacy__list">
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              No external servers
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              No analytics or tracking
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              No personal data collected
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Open source &amp; auditable
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="section">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__label">FAQ</span>
+        <h2 class="section__title">Frequently Asked Questions</h2>
+      </div>
+      <div class="faq__list">
+        <div class="faq-item">
+          <button class="faq-item__question">
+            Which Amazon sites are supported?
+            <svg class="faq-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <div class="faq-item__answer">
+            <div class="faq-item__answer-inner">
+              The extension supports 21 Amazon regional domains: .com, .co.uk,
+              .de, .fr, .it, .es, .co.jp, .ca, .com.au, .in, .com.br, .nl,
+              .se, .pl, .sg, .com.mx, .ae, .sa, .com.tr, .eg, and .com.be.
+              Spending is aggregated by currency when you shop across multiple
+              sites.
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-item__question">
+            How is my spending data stored?
+            <svg class="faq-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <div class="faq-item__answer">
+            <div class="faq-item__answer-inner">
+              All data is stored locally in Chrome's built-in storage
+              (chrome.storage.local). Nothing is ever sent to any external
+              server. Order amounts are cached for 24 hours to keep the
+              extension fast and avoid repeated scraping.
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-item__question">
+            How do I refresh my spending data?
+            <svg class="faq-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <div class="faq-item__answer">
+            <div class="faq-item__answer-inner">
+              Data refreshes automatically every 24 hours. You can also force
+              a manual refresh by clicking the refresh icon on any time range
+              in the popup widget, or refresh all ranges at once using the
+              button in the header.
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-item__question">
+            What is the Interface Lock feature?
+            <svg class="faq-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <div class="faq-item__answer">
+            <div class="faq-item__answer-inner">
+              Interface Lock lets you block Amazon access during specific
+              hours (e.g., 9 AM to 5 PM). When active, a full-screen overlay
+              replaces the page with a countdown timer showing when access
+              resumes. Settings cannot be changed while the lock is active, so
+              you can't cheat your way around it.
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-item__question">
+            Does it work with Amazon Prime orders?
+            <svg class="faq-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <div class="faq-item__answer">
+            <div class="faq-item__answer-inner">
+              Yes. The extension reads your order history directly from
+              Amazon's order pages, which includes all orders, Prime,
+              standard, digital, and physical. Any order that appears in your
+              Amazon order history will be tracked.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <img src="images/icon.png" alt="SpendGuard for Amazon™" />
+        <span>SpendGuard for Amazon™</span>
+      </div>
+      <div class="footer__links">
+        <a href="https://www.linkedin.com/in/matteo-lucerni-0725a526b" class="footer__link" target="_blank"
+          rel="noopener" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+          </svg>
+        </a>
+        <a href="https://github.com/MatteoLucerni" class="footer__link" target="_blank" rel="noopener"
+          aria-label="GitHub">
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 012-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z" />
+          </svg>
+        </a>
+        <a href="https://github.com/MatteoLucerni/amazon-spending-tracker-extension" class="footer__link"
+          target="_blank" rel="noopener" aria-label="Repository">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+
 </html>

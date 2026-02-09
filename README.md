@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="assets/images/icons/amz_icon.png" alt="Amazon Spending Tracker" width="128" height="128">
+  <img src="assets/images/icons/amz_icon.png" alt="SpendGuard for Amazon™" width="128" height="128">
 </p>
 
-<h1 align="center">Amazon Spending Tracker</h1>
+<h1 align="center">SpendGuard for Amazon™</h1>
 
 <p align="center">
-  A privacy-first Chrome extension that tracks your Amazon spending across 21 regional domains, directly from your browser, with zero external servers.
+  A privacy-first Chrome extension that tracks your Amazon™ spending across 21 regional domains, directly from your browser, with zero external servers.
 </p>
 
 <p align="center">
@@ -44,7 +44,7 @@
 
 ## Overview
 
-**Amazon Spending Tracker** is an open-source Chrome extension that helps you stay aware of your Amazon spending habits. It reads your order history directly from your authenticated Amazon session and displays spending summaries in a sleek, draggable floating widget, right on any Amazon page.
+**SpendGuard for Amazon™** is an open-source Chrome extension that helps you stay aware of your Amazon™ spending habits. It reads your order history directly from your authenticated Amazon session and displays spending summaries in a sleek, draggable floating widget, right on any Amazon page.
 
 All data is processed and stored locally in your browser. There are no external servers, no analytics, and no telemetry. Your spending data never leaves your machine.
 
@@ -231,7 +231,7 @@ The interface lock supports overnight ranges (e.g. 22:00-06:00). Enabling the lo
 
 ## Privacy
 
-**Amazon Spending Tracker is designed with privacy as the top priority.**
+**SpendGuard for Amazon™ is designed with privacy as the top priority.**
 
 - **Zero external network calls**: the extension never contacts any external server
 - **No analytics or telemetry**: no tracking pixels, no usage data collection, no crash reporting

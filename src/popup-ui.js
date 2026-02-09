@@ -13,12 +13,20 @@ function showMinimizedIcon() {
 
   let spendingLabel = null;
   if (settings.show30Days && cachedSpendingData.total !== undefined) {
-    spendingLabel = formatAmountHtml(cachedSpendingData.allCurrencies30, cachedSpendingData.total, cachedSpendingData.symbol);
+    spendingLabel = formatAmountHtml(
+      cachedSpendingData.allCurrencies30,
+      cachedSpendingData.total,
+      cachedSpendingData.symbol,
+    );
   } else if (
     settings.show3Months &&
     cachedSpendingData.total3Months !== undefined
   ) {
-    spendingLabel = formatAmountHtml(cachedSpendingData.allCurrencies3M, cachedSpendingData.total3Months, cachedSpendingData.symbol);
+    spendingLabel = formatAmountHtml(
+      cachedSpendingData.allCurrencies3M,
+      cachedSpendingData.total3Months,
+      cachedSpendingData.symbol,
+    );
   }
 
   const showAmount = !isLoading && spendingLabel !== null;
@@ -136,7 +144,7 @@ function showLoadingPopup() {
   popup.innerHTML = `
         ${SPINNER_STYLE}
         <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
-            <span>Spendings</span>
+            <span>SpendGuard</span>
             <div style="display:flex; align-items:center; gap:4px;">
                 ${GEAR_ICON_SVG.replace('<svg ', '<svg id="amz-settings" ')}
                 ${CLOSE_ICON_SVG}
@@ -172,7 +180,12 @@ function setupDraggable(popup) {
   const dragHandle = document.getElementById('amz-drag-handle');
   if (!dragHandle) return;
 
-  const headerBtnIds = ['amz-close', 'amz-settings', 'amz-back', 'amz-refresh-all'];
+  const headerBtnIds = [
+    'amz-close',
+    'amz-settings',
+    'amz-back',
+    'amz-refresh-all',
+  ];
   const dragStart = e => {
     if (e.target === dragHandle || dragHandle.contains(e.target)) {
       const isHeaderButton = headerBtnIds.some(id => {
@@ -351,7 +364,7 @@ function injectPopup(data) {
   popup.innerHTML = `
         ${SPINNER_STYLE}
         <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
-            <span>Spendings</span>
+            <span>SpendGuard</span>
             <div style="display:flex; align-items:center; gap:4px;">
                 ${REFRESH_ICON_HEADER_SVG}
                 ${GEAR_ICON_SVG.replace('<svg ', '<svg id="amz-settings" ')}
@@ -437,22 +450,25 @@ function showErrorPopup(errorType) {
   let showRetry = true;
   let extraButton = '';
   if (errorType === 'TAB_CREATE_FAILED') {
-    errorMessage = "Couldn't read your orders. Try closing some browser tabs and click Retry.";
+    errorMessage =
+      "Couldn't read your orders. Try closing some browser tabs and click Retry.";
   } else if (errorType === 'CONTEXT_INVALIDATED') {
     errorMessage = 'Extension was updated, please refresh this page.';
     showRetry = false;
-    extraButton = '<button id="amz-reload-page" style="background:#232f3e; color:white; border:none; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:11px; min-height:32px;">Refresh Page</button>';
+    extraButton =
+      '<button id="amz-reload-page" style="background:#232f3e; color:white; border:none; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:11px; min-height:32px;">Refresh Page</button>';
   } else if (errorType === 'AUTH_REQUIRED') {
     errorMessage = 'Please log into Amazon first, then refresh.';
     showRetry = false;
-    extraButton = '<button id="amz-go-login" style="background:#FF9900; color:#0f1111; border:none; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600; min-height:32px;">Go to Login</button>';
+    extraButton =
+      '<button id="amz-go-login" style="background:#FF9900; color:#0f1111; border:none; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600; min-height:32px;">Go to Login</button>';
   } else {
     errorMessage = 'Error loading data. Please try again.';
   }
 
   popup.innerHTML = `
     <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
-      <span>Spendings</span>
+      <span>SpendGuard</span>
       <div style="display:flex; align-items:center; gap:4px;">
         ${GEAR_ICON_SVG.replace('<svg ', '<svg id="amz-settings" ')}
         ${CLOSE_ICON_SVG}
@@ -484,7 +500,10 @@ function showErrorPopup(errorType) {
   }
   const loginBtn = document.getElementById('amz-go-login');
   if (loginBtn) {
-    loginBtn.onclick = () => { window.location.href = 'https://' + window.location.hostname + '/ap/signin'; };
+    loginBtn.onclick = () => {
+      window.location.href =
+        'https://' + window.location.hostname + '/ap/signin';
+    };
   }
 
   setupDraggable(popup);
