@@ -135,7 +135,7 @@ async function scrapeSinglePage(filter, domain, domainConfig, startIndex = 0) {
               target: { tabId: tab.id },
               func: (totalPatternStr, priceFormat) => {
                 let pageSum = 0;
-                let orderCount = 0;
+                const orderCount = document.querySelectorAll('.yohtmlc-order-id').length;
                 const totalRegex = new RegExp(totalPatternStr, 'i');
                 const items = document.querySelectorAll(
                   '.order-header__header-list-item',
@@ -165,7 +165,6 @@ async function scrapeSinglePage(filter, domain, domainConfig, startIndex = 0) {
                     const amount = parseFloat(clean) || 0;
                     if (amount > 0) {
                       pageSum += amount;
-                      orderCount++;
                     }
                   }
                 });
@@ -173,6 +172,7 @@ async function scrapeSinglePage(filter, domain, domainConfig, startIndex = 0) {
                 return {
                   sum: pageSum,
                   orderCount: orderCount,
+                  hasNextPage: !!document.querySelector('.a-pagination .a-last a'),
                   isBlocked:
                     document.body.innerText.includes('captcha') ||
                     document.querySelector('form[action*="signin"]') !== null,
@@ -235,10 +235,7 @@ async function scrapeWithTab(filter, domain, domainConfig) {
     totalSum += result.sum;
     totalOrders += result.orderCount;
 
-    if (result.orderCount < 10) {
-      console.log(
-        `[SpendGuard] ${filter} - Found less than 10 orders, this is the last page.`,
-      );
+    if (!result.hasNextPage) {
       break;
     }
 
