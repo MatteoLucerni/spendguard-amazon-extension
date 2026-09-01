@@ -6,7 +6,7 @@ const SETTINGS_DEFAULTS = {
   lockEndTime: '17:00',
   spendingLimitEnabled: false,
   spendingLimitAmount: 0,
-  spendingLimitMode: 'site',
+  spendingLimitMode: 'purchase',
 };
 
 const SPENDING_LIMIT_MODES = ['site', 'purchase'];

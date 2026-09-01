@@ -80,7 +80,7 @@ All data is processed and stored locally in your browser. There are no external 
 ### Spending Limit
 
 - **Spend-based blocking**: set a 30-day spending limit; once you cross it, Amazon is blocked
-- **Two modes**: *Block Amazon* locks the whole site behind the full-screen overlay; *Block buying* leaves browsing and tracking working but disables buy controls
+- **Two modes**: *Block buying* (default) leaves browsing and tracking working but disables the controls that start a purchase; *Block Amazon* escalates to locking the whole site behind the full-screen overlay
 - **Checkout is always locked** in either mode, so a missed buy button can't slip a purchase through
 - **Confirmation dialog with countdown** to prevent accidental activation
 - **Off by default**, and inert until you set an amount above zero
@@ -239,7 +239,7 @@ The extension provides the following user-configurable options, accessible via t
 | Lock End Time      | 17:00       | End of the lock window            |
 | Spending Limit     | ❌ Disabled | Block Amazon once the 30-day total reaches the limit |
 | Limit Amount       | 0           | The 30-day limit, in the current domain's currency |
-| Limit Mode         | Block Amazon | What happens over the limit: block the whole site, or just buying |
+| Limit Mode         | Block buying | What happens over the limit: block buying, or escalate to the whole site |
 
 The interface lock supports overnight ranges (e.g. 22:00-06:00). Enabling the lock requires explicit confirmation through a dialog with a 3-second countdown.
 

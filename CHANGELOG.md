@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Spending limit lock (#15): a configurable 30-day spending limit that locks Amazon behind the existing full-screen overlay once the limit is reached, blocking checkout as well as browsing. Disabled by default, and inactive until an amount above zero is set. Enabling it requires the same countdown confirmation as the interface lock.
-- Spending limit modes: the limit can either block Amazon entirely (default) or block only buying, leaving browsing and spend tracking intact. In purchase-only mode, buy controls are disabled and checkout is still locked outright.
+- Spending limit modes: over the limit, buying is blocked by default - buy controls are disabled while browsing and spend tracking keep working - and this can be escalated to blocking Amazon entirely. Checkout is locked outright in either mode.
 
 ## [1.0.1] - 2026-03-07
 

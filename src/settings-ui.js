@@ -198,8 +198,8 @@ function showSettingsView() {
         <div id="amz-limit-mode-row" style="margin-top:6px; display:${settings.spendingLimitEnabled ? 'flex' : 'none'}; align-items:center; gap:8px;">
           <span style="color:#565959; font-size:11px; width:32px;">Then:</span>
           <select id="amz-limit-mode" class="amz-amount-input">
-            <option value="site" ${settings.spendingLimitMode === 'site' ? 'selected' : ''}>Block Amazon</option>
             <option value="purchase" ${settings.spendingLimitMode === 'purchase' ? 'selected' : ''}>Block buying</option>
+            <option value="site" ${settings.spendingLimitMode === 'site' ? 'selected' : ''}>Block Amazon</option>
           </select>
         </div>
       </div>
