@@ -11,26 +11,42 @@ function showMinimizedIcon() {
   const settings = getSettings();
   const isLoading = isLoading30 || isLoading3M;
 
+  // The pill has room for one figure. Show the chosen range, but fall back to
+  // any other enabled range that does have data rather than showing nothing.
+  const labelFor = {
+    last30: () =>
+      settings.show30Days && cachedSpendingData.total !== undefined
+        ? formatAmountHtml(
+            cachedSpendingData.allCurrencies30,
+            cachedSpendingData.total,
+            cachedSpendingData.symbol,
+          )
+        : null,
+    month: () =>
+      settings.showMonth && cachedSpendingData.monthTotal !== undefined
+        ? `${Math.round(cachedSpendingData.monthTotal)} ${
+            cachedSpendingData.symbol || getCurrentDomainConfig().symbol
+          }`
+        : null,
+    months3: () =>
+      settings.show3Months && cachedSpendingData.total3Months !== undefined
+        ? formatAmountHtml(
+            cachedSpendingData.allCurrencies3M,
+            cachedSpendingData.total3Months,
+            cachedSpendingData.symbol,
+          )
+        : null,
+  };
+
+  const order = [
+    settings.minimizedRange,
+    ...['last30', 'month', 'months3'].filter(r => r !== settings.minimizedRange),
+  ];
+
   let spendingLabel = null;
-  if (settings.show30Days && cachedSpendingData.total !== undefined) {
-    spendingLabel = formatAmountHtml(
-      cachedSpendingData.allCurrencies30,
-      cachedSpendingData.total,
-      cachedSpendingData.symbol,
-    );
-  } else if (settings.showMonth && cachedSpendingData.monthTotal !== undefined) {
-    spendingLabel = `${Math.round(cachedSpendingData.monthTotal)} ${
-      cachedSpendingData.symbol || getCurrentDomainConfig().symbol
-    }`;
-  } else if (
-    settings.show3Months &&
-    cachedSpendingData.total3Months !== undefined
-  ) {
-    spendingLabel = formatAmountHtml(
-      cachedSpendingData.allCurrencies3M,
-      cachedSpendingData.total3Months,
-      cachedSpendingData.symbol,
-    );
+  for (const range of order) {
+    spendingLabel = labelFor[range] ? labelFor[range]() : null;
+    if (spendingLabel !== null) break;
   }
 
   const showAmount = !isLoading && spendingLabel !== null;

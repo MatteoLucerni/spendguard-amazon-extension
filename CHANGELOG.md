@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Spending limit modes: the limit can either block Amazon entirely (default) or block only buying, leaving browsing and spend tracking intact. In purchase-only mode, buy controls are disabled and checkout is still locked outright.
 - Spending limit window: the limit can be measured over the rolling last 30 days (default) or over the current calendar month, which resets on the 1st. Month to date is computed during the existing 30 day scrape, so only aggregate totals are stored and no per-order data is kept. Order dates are read from the rendered text, since Amazon exposes no machine readable date; month names come from Intl, and a purely numeric date is read using the locale's own field order so that 3/4 and 4.3 resolve correctly per region.
 - Month to date as a display range: a "This month" toggle adds the figure to the widget alongside the 30 day and 3 month totals. It shows "--" when no month figure has been scraped yet, and warns when some orders had a date that could not be read, so an incomplete total is never presented as a complete one.
+- Minimized pill range: a setting for which total the collapsed pill shows - last 30 days, this month, or last 3 months. It falls back to another enabled range when the chosen one has no data yet, rather than showing nothing.
 
 ### Fixed
 

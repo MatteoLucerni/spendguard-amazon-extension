@@ -169,6 +169,15 @@ function showSettingsView() {
         </div>
       </label>
 
+      <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+        <span style="display:flex; align-items:center; color:#565959; font-size:11px;">Minimized<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Which total the collapsed pill shows. Falls back to another range if this one has no data yet</span></span></span>
+        <select id="amz-minimized-range" class="amz-amount-input" style="flex:1 1 auto; width:auto; min-width:0;">
+          <option value="last30" ${settings.minimizedRange === 'last30' ? 'selected' : ''}>Last 30 days</option>
+          <option value="month" ${settings.minimizedRange === 'month' ? 'selected' : ''}>This month</option>
+          <option value="months3" ${settings.minimizedRange === 'months3' ? 'selected' : ''}>Last 3 months</option>
+        </select>
+      </div>
+
       <div class="amz-section-divider">
         <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
           <span style="display:flex; align-items:center; font-weight:600;">Interface Lock<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Blocks access during set hours to prevent impulse purchases</span></span></span>
@@ -281,6 +290,7 @@ function showSettingsView() {
     return {
       show30Days: document.getElementById('amz-setting-30days').checked,
       showMonth: document.getElementById('amz-setting-month').checked,
+      minimizedRange: document.getElementById('amz-minimized-range').value,
       show3Months: document.getElementById('amz-setting-3months').checked,
       interfaceLockEnabled: document.getElementById('amz-setting-lock').checked,
       lockStartTime: document.getElementById('amz-lock-start').value,
@@ -300,6 +310,7 @@ function showSettingsView() {
   document.getElementById('amz-setting-30days').onchange = saveCurrentSettings;
   document.getElementById('amz-setting-month').onchange = saveCurrentSettings;
   document.getElementById('amz-setting-3months').onchange = saveCurrentSettings;
+  document.getElementById('amz-minimized-range').onchange = saveCurrentSettings;
 
   document.getElementById('amz-setting-lock').onchange = () => {
     const lockCheckbox = document.getElementById('amz-setting-lock');

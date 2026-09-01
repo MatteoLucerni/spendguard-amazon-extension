@@ -62,7 +62,7 @@ All data is processed and stored locally in your browser. There are no external 
 ### Floating Popup Widget
 
 - **Draggable popup** that snaps to left/right sides of the viewport
-- **Minimize to icon**: compact pill showing your spending total at a glance
+- **Minimize to icon**: compact pill showing your spending total at a glance, with a setting for which range it shows
 - **Responsive design**: three layout tiers: mobile (≤480px), tablet (≤768px), desktop
 - **Relative timestamps**: "5 min ago", "2 hours ago" for last refresh time
 
@@ -237,6 +237,7 @@ The extension provides the following user-configurable options, accessible via t
 | Show Last 30 Days  | ✅ Enabled  | Display 30-day spending total     |
 | Show This Month    | ❌ Disabled | Display spending since the 1st (from the 30-day range) |
 | Show Last 3 Months | ✅ Enabled  | Display 3-month spending total    |
+| Minimized Total    | Last 30 days | Which figure the collapsed pill shows |
 | Interface Lock     | ❌ Disabled | Enable time-based Amazon blocking |
 | Lock Start Time    | 09:00       | Start of the lock window          |
 | Lock End Time      | 17:00       | End of the lock window            |
