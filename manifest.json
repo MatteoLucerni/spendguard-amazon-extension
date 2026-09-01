@@ -76,6 +76,7 @@
                 "src/data.js",
                 "src/onboarding.js",
                 "src/checkout.js",
+                "src/unlock.js",
                 "src/lock.js",
                 "src/purchase-block.js",
                 "src/main.js"

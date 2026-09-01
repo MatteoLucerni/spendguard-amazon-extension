@@ -87,6 +87,13 @@ All data is processed and stored locally in your browser. There are no external 
 - **Confirmation dialog with countdown** to prevent accidental activation
 - **Off by default**, and inert until you set an amount above zero
 
+### Unlock Password
+
+- **Optional password** asked for before a lock is lifted, either from the lock screen or when switching a lock off in settings
+- **Unlocks for 15 minutes**, then the lock returns on its own
+- **Stored as a salted SHA-256 digest**, never in the clear
+- **Friction, not security**: anyone with access to the browser can disable the extension from `chrome://extensions`, and no content script can prevent that. It exists to make unlocking a decision rather than a reflex
+
 ### Onboarding
 
 - **Welcome gate** for first-time users with a 4-second skip countdown
@@ -209,6 +216,7 @@ amazon-spending-tracker-extension/
 │   ├── checkout.js            # Checkout page spending warning banner
 │   ├── lock.js                # Interface lock overlay with countdown
 │   ├── purchase-block.js      # Disables buy controls when over the spending limit
+│   ├── unlock.js              # Optional unlock password and the temporary unlock window
 │   └── onboarding.js          # Welcome gate and 6-step spotlight tour
 ├── assets/
 │   └── images/
@@ -245,6 +253,7 @@ The extension provides the following user-configurable options, accessible via t
 | Limit Amount       | 0           | The 30-day limit, in the current domain's currency |
 | Limit Window       | Last 30 days | Measure the limit over the last 30 days, or the current calendar month |
 | Limit Mode         | Block buying | What happens over the limit: block buying, or escalate to the whole site |
+| Unlock Password    | Not set     | Optional password required to lift a lock, for 15 minutes at a time |
 
 The interface lock supports overnight ranges (e.g. 22:00-06:00). Enabling the lock requires explicit confirmation through a dialog with a 3-second countdown.
 

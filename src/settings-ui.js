@@ -226,6 +226,10 @@ function showSettingsView() {
           </select>
         </div>
       </div>
+      <div class="amz-section-divider">
+        <span style="display:flex; align-items:center; font-weight:600;">Unlock Password<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Asks for a password before a lock is lifted. Friction, not security: the extension can still be turned off in Chrome.</span></span></span>
+        <div id="amz-password-state" style="margin-top:8px;"></div>
+      </div>
       <div style="border-top:1px solid #e7e7e7; margin-top:4px; padding-top:8px; display:flex; flex-direction:column; gap:6px;">
         <button id="amz-replay-tutorial" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:6px 0; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit; transition:background 0.2s;" onmouseover="this.style.background='#f7f7f7'" onmouseout="this.style.background='#fff'">
           ${HELP_ICON_SVG.replace('width="14" height="14"', 'width="12" height="12"')}
@@ -327,8 +331,16 @@ function showSettingsView() {
         },
       );
     } else {
-      lockTimes.style.display = 'none';
-      saveCurrentSettings();
+      promptForPassword(
+        'Turn off the interface lock?',
+        () => {
+          lockTimes.style.display = 'none';
+          saveCurrentSettings();
+        },
+        () => {
+          lockCheckbox.checked = true;
+        },
+      );
     }
   };
 
@@ -369,16 +381,60 @@ function showSettingsView() {
         },
       );
     } else {
-      limitRow.style.display = 'none';
-      limitRangeRow.style.display = 'none';
-      limitModeRow.style.display = 'none';
-      saveCurrentSettings();
+      promptForPassword(
+        'Turn off the spending limit?',
+        () => {
+          limitRow.style.display = 'none';
+          limitRangeRow.style.display = 'none';
+          limitModeRow.style.display = 'none';
+          saveCurrentSettings();
+        },
+        () => {
+          limitCheckbox.checked = true;
+        },
+      );
     }
   };
 
   document.getElementById('amz-limit-amount').onchange = saveCurrentSettings;
   document.getElementById('amz-limit-mode').onchange = saveCurrentSettings;
   document.getElementById('amz-limit-range').onchange = saveCurrentSettings;
+
+  function renderPasswordState() {
+    const host = document.getElementById('amz-password-state');
+    if (!host) return;
+
+    hasUnlockPassword(exists => {
+      if (exists) {
+        host.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <span style="color:#067d62; font-size:11px;">Password set</span>
+            <button id="amz-password-remove" style="padding:4px 10px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit;">Remove</button>
+          </div>
+        `;
+        document.getElementById('amz-password-remove').onclick = () => {
+          promptForPassword('Remove unlock password?', () => {
+            clearUnlockPassword(() => renderPasswordState());
+          });
+        };
+        return;
+      }
+
+      host.innerHTML = `
+        <div style="display:flex; align-items:center; gap:6px;">
+          <input id="amz-password-new" type="password" autocomplete="new-password" placeholder="Set a password" class="amz-amount-input" style="flex:1; width:auto;">
+          <button id="amz-password-save" style="padding:4px 10px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit;">Set</button>
+        </div>
+      `;
+      document.getElementById('amz-password-save').onclick = () => {
+        const value = document.getElementById('amz-password-new').value;
+        if (!value) return;
+        setUnlockPassword(value, () => renderPasswordState());
+      };
+    });
+  }
+
+  renderPasswordState();
 
   popup.querySelectorAll('.amz-help-icon').forEach(icon => {
     const tooltip = icon.querySelector('.amz-help-tooltip');

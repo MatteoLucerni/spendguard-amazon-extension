@@ -171,6 +171,11 @@ function showLockOverlay(settings, spendingData, reason = 'time') {
 
   document.body.appendChild(overlay);
 
+  attachUnlockControl(overlay, () => {
+    removeLockOverlay();
+    loadData(true);
+  });
+
   if (!isLimitLock) {
     startLockTimer(settings);
   }
