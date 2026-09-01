@@ -128,7 +128,15 @@ function buildMonthContext(locale) {
   // longest first so a long name is never shadowed by a shorter one
   names.sort((a, b) => b.name.length - a.name.length);
 
-  return { year: now.getFullYear(), month: now.getMonth() + 1, names };
+  // Amazon renders dates as display text with no machine readable form, so a
+  // purely numeric date has to be read positionally. Intl knows the field
+  // order for the locale, which is what makes 03/04 decidable.
+  const order = new Intl.DateTimeFormat(locale || 'en-US')
+    .formatToParts(new Date(Date.UTC(2020, 2, 4)))
+    .filter(p => p.type === 'day' || p.type === 'month' || p.type === 'year')
+    .map(p => p.type);
+
+  return { year: now.getFullYear(), month: now.getMonth() + 1, names, order };
 }
 
 // Injected into the order history page by chrome.scripting, which serialises
@@ -165,13 +173,28 @@ function scrapePageOrders(totalPatternStr, priceFormat, monthCtx) {
     if (cjk) return { year: Number(cjk[1]), month: Number(cjk[2]) };
 
     const year = t.match(/(?:^|\D)(\d{4})(?:\D|$)/);
-    if (!year) return null;
 
-    for (const entry of monthCtx.names) {
-      if (t.includes(entry.name)) {
-        return { year: Number(year[1]), month: entry.month };
+    if (year) {
+      for (const entry of monthCtx.names) {
+        if (t.includes(entry.name)) {
+          return { year: Number(year[1]), month: entry.month };
+        }
       }
     }
+
+    // no month name: read the numeric form using the locale's own field order
+    const numeric = t.match(/(\d{1,4})[./-](\d{1,2})[./-](\d{1,4})/);
+    if (numeric && monthCtx.order && monthCtx.order.length === 3) {
+      const values = [numeric[1], numeric[2], numeric[3]].map(Number);
+      const picked = {};
+      monthCtx.order.forEach((field, i) => {
+        picked[field] = values[i];
+      });
+      if (picked.year && picked.month >= 1 && picked.month <= 12) {
+        return { year: picked.year, month: picked.month };
+      }
+    }
+
     return null;
   };
 
