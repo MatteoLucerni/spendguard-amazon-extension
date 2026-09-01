@@ -4,7 +4,18 @@ const SETTINGS_DEFAULTS = {
   interfaceLockEnabled: false,
   lockStartTime: '09:00',
   lockEndTime: '17:00',
+  spendingLimitEnabled: false,
+  spendingLimitAmount: 0,
+  spendingLimitMode: 'purchase',
 };
+
+const SPENDING_LIMIT_MODES = ['site', 'purchase'];
+
+function normalizeSpendingLimitMode(value) {
+  return SPENDING_LIMIT_MODES.includes(value)
+    ? value
+    : SETTINGS_DEFAULTS.spendingLimitMode;
+}
 
 const SETTINGS_KEY = 'amz-spending-settings';
 let _settingsCache = { ...SETTINGS_DEFAULTS };
@@ -37,6 +48,15 @@ function initSettings(callback) {
           parsed.interfaceLockEnabled || SETTINGS_DEFAULTS.interfaceLockEnabled,
         lockStartTime: parsed.lockStartTime || SETTINGS_DEFAULTS.lockStartTime,
         lockEndTime: parsed.lockEndTime || SETTINGS_DEFAULTS.lockEndTime,
+        spendingLimitEnabled:
+          parsed.spendingLimitEnabled !== undefined
+            ? parsed.spendingLimitEnabled
+            : SETTINGS_DEFAULTS.spendingLimitEnabled,
+        spendingLimitAmount:
+          parsed.spendingLimitAmount !== undefined
+            ? parsed.spendingLimitAmount
+            : SETTINGS_DEFAULTS.spendingLimitAmount,
+        spendingLimitMode: normalizeSpendingLimitMode(parsed.spendingLimitMode),
       };
     } else if (legacySaved) {
       try {
@@ -56,6 +76,17 @@ function initSettings(callback) {
           lockStartTime:
             parsed.lockStartTime || SETTINGS_DEFAULTS.lockStartTime,
           lockEndTime: parsed.lockEndTime || SETTINGS_DEFAULTS.lockEndTime,
+          spendingLimitEnabled:
+            parsed.spendingLimitEnabled !== undefined
+              ? parsed.spendingLimitEnabled
+              : SETTINGS_DEFAULTS.spendingLimitEnabled,
+          spendingLimitAmount:
+            parsed.spendingLimitAmount !== undefined
+              ? parsed.spendingLimitAmount
+              : SETTINGS_DEFAULTS.spendingLimitAmount,
+          spendingLimitMode: normalizeSpendingLimitMode(
+            parsed.spendingLimitMode,
+          ),
         };
         chrome.storage.local.set({ [SETTINGS_KEY]: _settingsCache });
         localStorage.removeItem(SETTINGS_KEY);
