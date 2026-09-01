@@ -149,7 +149,7 @@ function injectDemoPopup() {
           <span id="amz-refresh-3m">${REFRESH_ICON_SVG}</span>
         </div>
       </div>
-      <div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">Lock not configured</div>
+      <div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">No limits set</div>
     </div>
   `;
 

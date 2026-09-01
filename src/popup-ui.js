@@ -357,9 +357,20 @@ function injectPopup(data) {
         </div>`
       : '';
 
-  const lockStatusMessage = settings.interfaceLockEnabled
-    ? `<div style="font-size:10px; color:#565959; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">Lock: ${settings.lockStartTime} - ${settings.lockEndTime}</div>`
-    : `<div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">Lock not configured</div>`;
+  const lockLine = settings.interfaceLockEnabled
+    ? `Lock: ${settings.lockStartTime} - ${settings.lockEndTime}`
+    : null;
+  const limitLine =
+    settings.spendingLimitEnabled && Number(settings.spendingLimitAmount) > 0
+      ? `Limit: ${Math.round(Number(settings.spendingLimitAmount))} ${getCurrentDomainConfig().symbol}${
+          settings.spendingLimitMode === 'purchase' ? ' (buying)' : ''
+        }`
+      : null;
+  const statusLines = [lockLine, limitLine].filter(Boolean);
+
+  const lockStatusMessage = statusLines.length
+    ? `<div style="font-size:10px; color:#565959; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">${statusLines.join('<br>')}</div>`
+    : `<div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">No limits set</div>`;
 
   popup.innerHTML = `
         ${SPINNER_STYLE}
