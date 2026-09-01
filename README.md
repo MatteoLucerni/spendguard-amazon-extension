@@ -79,8 +79,9 @@ All data is processed and stored locally in your browser. There are no external 
 
 ### Spending Limit
 
-- **Spend-based Amazon blocking**: set a 30-day spending limit; once you cross it, Amazon is locked
-- **Reuses the full-screen lock overlay**, showing spent vs. limit instead of a countdown
+- **Spend-based blocking**: set a 30-day spending limit; once you cross it, Amazon is blocked
+- **Two modes**: *Block Amazon* locks the whole site behind the full-screen overlay; *Block buying* leaves browsing and tracking working but disables buy controls
+- **Checkout is always locked** in either mode, so a missed buy button can't slip a purchase through
 - **Confirmation dialog with countdown** to prevent accidental activation
 - **Off by default**, and inert until you set an amount above zero
 
@@ -205,6 +206,7 @@ amazon-spending-tracker-extension/
 │   ├── data.js                # Data loading, refresh orchestration, caching
 │   ├── checkout.js            # Checkout page spending warning banner
 │   ├── lock.js                # Interface lock overlay with countdown
+│   ├── purchase-block.js      # Disables buy controls when over the spending limit
 │   └── onboarding.js          # Welcome gate and 6-step spotlight tour
 ├── assets/
 │   └── images/
@@ -237,6 +239,7 @@ The extension provides the following user-configurable options, accessible via t
 | Lock End Time      | 17:00       | End of the lock window            |
 | Spending Limit     | ❌ Disabled | Block Amazon once the 30-day total reaches the limit |
 | Limit Amount       | 0           | The 30-day limit, in the current domain's currency |
+| Limit Mode         | Block Amazon | What happens over the limit: block the whole site, or just buying |
 
 The interface lock supports overnight ranges (e.g. 22:00-06:00). Enabling the lock requires explicit confirmation through a dialog with a 3-second countdown.
 

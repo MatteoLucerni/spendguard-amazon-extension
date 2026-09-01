@@ -37,6 +37,16 @@ function checkOnboardingAndInit() {
     if (settings.spendingLimitEnabled) {
       loadSpendingDataForLimit(spendingData => {
         if (isOverSpendingLimit(settings, spendingData)) {
+          // checkout pages always get the overlay: the only thing to do there
+          // is buy, and blocking it by button selector is far more brittle
+          if (
+            settings.spendingLimitMode === 'purchase' &&
+            !window.location.href.includes('checkout')
+          ) {
+            applyPurchaseBlock(settings, spendingData);
+            continueAfterLockChecks();
+            return;
+          }
           showLockOverlay(settings, spendingData, 'limit');
           return;
         }

@@ -40,6 +40,21 @@ const AMAZON_DOMAINS = {
   'www.amazon.com.be': { currency: 'EUR', symbol: '€', totalPattern: 'total|totaal|totale', priceFormat: 'eu' },
 };
 
+// Controls that start a purchase. The first five were confirmed against a live
+// amazon.com product and cart page; the rest are best effort. This list does not
+// have to be exhaustive - checkout pages get the full lock overlay regardless,
+// so anything missed here is still stopped one step later.
+const PURCHASE_CONTROL_SELECTORS = [
+  '#add-to-cart-button',
+  '#buy-now-button',
+  'input[name="submit.add-to-cart"]',
+  'input[name="submit.addToCart"]',
+  'input[name="submit.buy-now"]',
+  '#one-click-button',
+  'input[name="proceedToRetailCheckout"]',
+  '#sc-buy-box-ptc-button',
+].join(', ');
+
 const AMAZON_MATCH_PATTERNS = Object.keys(AMAZON_DOMAINS).map(d => `https://${d}/*`);
 
 function getAmazonDomainConfig(hostname) {

@@ -6,7 +6,16 @@ const SETTINGS_DEFAULTS = {
   lockEndTime: '17:00',
   spendingLimitEnabled: false,
   spendingLimitAmount: 0,
+  spendingLimitMode: 'site',
 };
+
+const SPENDING_LIMIT_MODES = ['site', 'purchase'];
+
+function normalizeSpendingLimitMode(value) {
+  return SPENDING_LIMIT_MODES.includes(value)
+    ? value
+    : SETTINGS_DEFAULTS.spendingLimitMode;
+}
 
 const SETTINGS_KEY = 'amz-spending-settings';
 let _settingsCache = { ...SETTINGS_DEFAULTS };
@@ -47,6 +56,7 @@ function initSettings(callback) {
           parsed.spendingLimitAmount !== undefined
             ? parsed.spendingLimitAmount
             : SETTINGS_DEFAULTS.spendingLimitAmount,
+        spendingLimitMode: normalizeSpendingLimitMode(parsed.spendingLimitMode),
       };
     } else if (legacySaved) {
       try {
@@ -74,6 +84,9 @@ function initSettings(callback) {
             parsed.spendingLimitAmount !== undefined
               ? parsed.spendingLimitAmount
               : SETTINGS_DEFAULTS.spendingLimitAmount,
+          spendingLimitMode: normalizeSpendingLimitMode(
+            parsed.spendingLimitMode,
+          ),
         };
         chrome.storage.local.set({ [SETTINGS_KEY]: _settingsCache });
         localStorage.removeItem(SETTINGS_KEY);
