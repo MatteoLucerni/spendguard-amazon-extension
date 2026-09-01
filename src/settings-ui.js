@@ -1,4 +1,9 @@
-function showLockConfirmDialog(onConfirm, onCancel) {
+function showLockConfirmDialog(onConfirm, onCancel, options = {}) {
+  const dialogTitle = options.title || 'Enable Interface Lock?';
+  const dialogBody =
+    options.body ||
+    `This will block your access to Amazon during the scheduled time. <strong style="color:#0f1111;">You won't be able to change this setting while locked.</strong>`;
+
   const existingDialog = document.getElementById('amz-lock-confirm-dialog');
   if (existingDialog) existingDialog.remove();
 
@@ -20,9 +25,9 @@ function showLockConfirmDialog(onConfirm, onCancel) {
 
   overlay.innerHTML = `
     <div style="background:#fff; border-radius:8px; padding:20px; max-width:min(300px, calc(100vw - 40px)); box-shadow:0 4px 12px rgba(0,0,0,0.3); text-align:center;">
-      <div style="font-size:16px; font-weight:600; color:#0f1111; margin-bottom:12px;">Enable Interface Lock?</div>
+      <div style="font-size:16px; font-weight:600; color:#0f1111; margin-bottom:12px;">${dialogTitle}</div>
       <p style="font-size:13px; color:#565959; margin:0 0 20px 0; line-height:1.4;">
-        This will block your access to Amazon during the scheduled time. <strong style="color:#0f1111;">You won't be able to change this setting while locked.</strong>
+        ${dialogBody}
       </p>
       <div style="display:flex; gap:10px; justify-content:center;">
         <button id="amz-lock-cancel" style="padding:8px 16px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#0f1111; font-size:13px; cursor:pointer; min-height:44px;">Cancel</button>
@@ -125,6 +130,8 @@ function showSettingsView() {
       .amz-toggle input:checked + .slider:before { transform:translateX(12px); }
       .amz-time-input { width:95px; padding:4px 6px; border:1px solid #d5d9d9; border-radius:4px; font-size:12px; font-family:inherit; }
       .amz-time-input:focus { outline:none; border-color:#232f3e; }
+      .amz-amount-input { width:95px; max-width:100%; box-sizing:border-box; padding:4px 6px; border:1px solid #d5d9d9; border-radius:4px; font-size:12px; font-family:inherit; }
+      .amz-amount-input:focus { outline:none; border-color:#232f3e; }
       .amz-section-divider { border-top:1px solid #e7e7e7; margin:8px 0; padding-top:8px; }
       .amz-help-icon { position:relative; display:inline-flex; align-items:center; cursor:help; margin-left:4px; }
       .amz-help-icon svg { color:#767676; transition:color .2s; }
@@ -148,12 +155,28 @@ function showSettingsView() {
         </div>
       </label>
       <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+        <span style="display:flex; align-items:center;">This month<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Spent since the 1st. Read from the last 30 days of orders, so that range is fetched too</span></span></span>
+        <div class="amz-toggle">
+          <input type="checkbox" id="amz-setting-month" ${settings.showMonth ? 'checked' : ''}>
+          <span class="slider"></span>
+        </div>
+      </label>
+      <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
         <span style="display:flex; align-items:center;">Last 3 months<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Shows total spent in the last 3 months</span></span></span>
         <div class="amz-toggle">
           <input type="checkbox" id="amz-setting-3months" ${settings.show3Months ? 'checked' : ''}>
           <span class="slider"></span>
         </div>
       </label>
+
+      <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+        <span style="display:flex; align-items:center; color:#565959; font-size:11px;">Minimized<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Which total the collapsed pill shows. Falls back to another range if this one has no data yet</span></span></span>
+        <select id="amz-minimized-range" class="amz-amount-input" style="flex:1 1 auto; width:auto; min-width:0;">
+          <option value="last30" ${settings.minimizedRange === 'last30' ? 'selected' : ''}>Last 30 days</option>
+          <option value="month" ${settings.minimizedRange === 'month' ? 'selected' : ''}>This month</option>
+          <option value="months3" ${settings.minimizedRange === 'months3' ? 'selected' : ''}>Last 3 months</option>
+        </select>
+      </div>
 
       <div class="amz-section-divider">
         <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
@@ -173,6 +196,39 @@ function showSettingsView() {
             <input type="time" id="amz-lock-end" class="amz-time-input" value="${settings.lockEndTime}">
           </div>
         </div>
+      </div>
+
+      <div class="amz-section-divider">
+        <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+          <span style="display:flex; align-items:center; font-weight:600;">Spending Limit<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Blocks Amazon once you have spent more than this over the chosen period</span></span></span>
+          <div class="amz-toggle">
+            <input type="checkbox" id="amz-setting-limit" ${settings.spendingLimitEnabled ? 'checked' : ''}>
+            <span class="slider"></span>
+          </div>
+        </label>
+        <div id="amz-limit-amount-row" style="margin-top:8px; display:${settings.spendingLimitEnabled ? 'flex' : 'none'}; align-items:center; gap:8px;">
+          <span style="color:#565959; font-size:11px; width:32px;">Max:</span>
+          <input type="number" min="0" step="1" id="amz-limit-amount" class="amz-amount-input" value="${settings.spendingLimitAmount}">
+          <span style="color:#565959; font-size:11px;">${getCurrentDomainConfig().symbol}</span>
+        </div>
+        <div id="amz-limit-range-row" style="margin-top:6px; display:${settings.spendingLimitEnabled ? 'flex' : 'none'}; align-items:center; gap:8px;">
+          <span style="color:#565959; font-size:11px; width:32px;">Over:</span>
+          <select id="amz-limit-range" class="amz-amount-input">
+            <option value="last30" ${settings.spendingLimitRange === 'last30' ? 'selected' : ''}>Last 30 days</option>
+            <option value="month" ${settings.spendingLimitRange === 'month' ? 'selected' : ''}>This month</option>
+          </select>
+        </div>
+        <div id="amz-limit-mode-row" style="margin-top:6px; display:${settings.spendingLimitEnabled ? 'flex' : 'none'}; align-items:center; gap:8px;">
+          <span style="color:#565959; font-size:11px; width:32px;">Then:</span>
+          <select id="amz-limit-mode" class="amz-amount-input">
+            <option value="purchase" ${settings.spendingLimitMode === 'purchase' ? 'selected' : ''}>Block buying</option>
+            <option value="site" ${settings.spendingLimitMode === 'site' ? 'selected' : ''}>Block Amazon</option>
+          </select>
+        </div>
+      </div>
+      <div class="amz-section-divider">
+        <span style="display:flex; align-items:center; font-weight:600;">Unlock Password<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Asks for a password before a lock is lifted. Friction, not security: the extension can still be turned off in Chrome.</span></span></span>
+        <div id="amz-password-state" style="margin-top:8px;"></div>
       </div>
       <div style="border-top:1px solid #e7e7e7; margin-top:4px; padding-top:8px; display:flex; flex-direction:column; gap:6px;">
         <button id="amz-replay-tutorial" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:6px 0; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit; transition:background 0.2s;" onmouseover="this.style.background='#f7f7f7'" onmouseout="this.style.background='#fff'">
@@ -237,10 +293,17 @@ function showSettingsView() {
   function getCurrentSettingsFromForm() {
     return {
       show30Days: document.getElementById('amz-setting-30days').checked,
+      showMonth: document.getElementById('amz-setting-month').checked,
+      minimizedRange: document.getElementById('amz-minimized-range').value,
       show3Months: document.getElementById('amz-setting-3months').checked,
       interfaceLockEnabled: document.getElementById('amz-setting-lock').checked,
       lockStartTime: document.getElementById('amz-lock-start').value,
       lockEndTime: document.getElementById('amz-lock-end').value,
+      spendingLimitEnabled: document.getElementById('amz-setting-limit').checked,
+      spendingLimitAmount:
+        parseFloat(document.getElementById('amz-limit-amount').value) || 0,
+      spendingLimitMode: document.getElementById('amz-limit-mode').value,
+      spendingLimitRange: document.getElementById('amz-limit-range').value,
     };
   }
 
@@ -249,7 +312,9 @@ function showSettingsView() {
   };
 
   document.getElementById('amz-setting-30days').onchange = saveCurrentSettings;
+  document.getElementById('amz-setting-month').onchange = saveCurrentSettings;
   document.getElementById('amz-setting-3months').onchange = saveCurrentSettings;
+  document.getElementById('amz-minimized-range').onchange = saveCurrentSettings;
 
   document.getElementById('amz-setting-lock').onchange = () => {
     const lockCheckbox = document.getElementById('amz-setting-lock');
@@ -266,13 +331,110 @@ function showSettingsView() {
         },
       );
     } else {
-      lockTimes.style.display = 'none';
-      saveCurrentSettings();
+      promptForPassword(
+        'Turn off the interface lock?',
+        () => {
+          lockTimes.style.display = 'none';
+          saveCurrentSettings();
+        },
+        () => {
+          lockCheckbox.checked = true;
+        },
+      );
     }
   };
 
   document.getElementById('amz-lock-start').onchange = saveCurrentSettings;
   document.getElementById('amz-lock-end').onchange = saveCurrentSettings;
+
+  document.getElementById('amz-setting-limit').onchange = () => {
+    const limitCheckbox = document.getElementById('amz-setting-limit');
+    const limitRow = document.getElementById('amz-limit-amount-row');
+    const limitModeRow = document.getElementById('amz-limit-mode-row');
+    const limitRangeRow = document.getElementById('amz-limit-range-row');
+
+    if (limitCheckbox.checked) {
+      showLockConfirmDialog(
+        () => {
+          // the limit reads the 30-day cache, which only fills while the
+          // 30-day range is on - otherwise the limit would never fire
+          document.getElementById('amz-setting-30days').checked = true;
+          limitRow.style.display = 'flex';
+          limitRangeRow.style.display = 'flex';
+          limitModeRow.style.display = 'flex';
+          saveCurrentSettings();
+        },
+        () => {
+          limitCheckbox.checked = false;
+        },
+        {
+          title: 'Enable Spending Limit?',
+          body: (() => {
+            const period =
+              document.getElementById('amz-limit-range').value === 'month'
+                ? 'this month'
+                : 'in the last 30 days';
+            return document.getElementById('amz-limit-mode').value === 'purchase'
+              ? `Buy buttons will be disabled, and checkout blocked, once you have spent more than your limit ${period}. Browsing keeps working.`
+              : `Amazon will be blocked once you have spent more than your limit ${period}. <strong style="color:#0f1111;">You won't be able to change this setting while blocked.</strong>`;
+          })(),
+        },
+      );
+    } else {
+      promptForPassword(
+        'Turn off the spending limit?',
+        () => {
+          limitRow.style.display = 'none';
+          limitRangeRow.style.display = 'none';
+          limitModeRow.style.display = 'none';
+          saveCurrentSettings();
+        },
+        () => {
+          limitCheckbox.checked = true;
+        },
+      );
+    }
+  };
+
+  document.getElementById('amz-limit-amount').onchange = saveCurrentSettings;
+  document.getElementById('amz-limit-mode').onchange = saveCurrentSettings;
+  document.getElementById('amz-limit-range').onchange = saveCurrentSettings;
+
+  function renderPasswordState() {
+    const host = document.getElementById('amz-password-state');
+    if (!host) return;
+
+    hasUnlockPassword(exists => {
+      if (exists) {
+        host.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <span style="color:#067d62; font-size:11px; min-width:0;">Password set</span>
+            <button id="amz-password-remove" style="flex:0 0 auto; padding:4px 10px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit;">Remove</button>
+          </div>
+        `;
+        document.getElementById('amz-password-remove').onclick = () => {
+          promptForPassword('Remove unlock password?', () => {
+            clearUnlockPassword(() => renderPasswordState());
+          });
+        };
+        return;
+      }
+
+      host.innerHTML = `
+        <div style="display:flex; align-items:center; gap:6px;">
+          <input id="amz-password-new" type="password" autocomplete="new-password" placeholder="Password" class="amz-amount-input" style="flex:1 1 auto; width:auto; min-width:0;">
+          <button id="amz-password-save" style="flex:0 0 auto; padding:4px 10px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit;">Set</button>
+        </div>
+      `;
+      document.getElementById('amz-password-save').onclick = () => {
+        const value = document.getElementById('amz-password-new').value;
+        if (!value) return;
+        setUnlockPassword(value, () => renderPasswordState());
+      };
+    });
+  }
+
+  renderPasswordState();
 
   popup.querySelectorAll('.amz-help-icon').forEach(icon => {
     const tooltip = icon.querySelector('.amz-help-tooltip');

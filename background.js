@@ -32,6 +32,9 @@ async function aggregateAllDomains(period) {
     if (!byCurrency[curr]) {
       byCurrency[curr] = {
         total: 0,
+        monthTotal: 0,
+        monthUnparsed: 0,
+        hasMonthData: false,
         orderCount: 0,
         symbol: config.symbol,
         currency: curr,
@@ -39,6 +42,11 @@ async function aggregateAllDomains(period) {
     }
     byCurrency[curr].total += value.data.total || 0;
     byCurrency[curr].orderCount += value.data.orderCount || 0;
+    if (value.data.monthTotal !== undefined) {
+      byCurrency[curr].hasMonthData = true;
+      byCurrency[curr].monthTotal += value.data.monthTotal || 0;
+      byCurrency[curr].monthUnparsed += value.data.monthUnparsed || 0;
+    }
   }
 
   const expiredKeys = [];
@@ -103,7 +111,164 @@ async function createTabWithRetry(url, maxRetries = 3) {
   throw lastError;
 }
 
-async function scrapeSinglePage(filter, domain, domainConfig, startIndex = 0) {
+// Month names for a locale, generated rather than hardcoded for 21 domains.
+// Only month and year ever matter, so the day is never parsed.
+function buildMonthContext(locale) {
+  const now = new Date();
+  const names = [];
+
+  for (const style of ['long', 'short']) {
+    const fmt = new Intl.DateTimeFormat(locale || 'en-US', { month: style });
+    for (let m = 0; m < 12; m++) {
+      const name = fmt.format(new Date(Date.UTC(2020, m, 15))).toLowerCase();
+      if (/\d/.test(name)) continue; // numeric month names carry no signal
+      names.push({ name, month: m + 1 });
+    }
+  }
+  // longest first so a long name is never shadowed by a shorter one
+  names.sort((a, b) => b.name.length - a.name.length);
+
+  // Amazon renders dates as display text with no machine readable form, so a
+  // purely numeric date has to be read positionally. Intl knows the field
+  // order for the locale, which is what makes 03/04 decidable.
+  const order = new Intl.DateTimeFormat(locale || 'en-US')
+    .formatToParts(new Date(Date.UTC(2020, 2, 4)))
+    .filter(p => p.type === 'day' || p.type === 'month' || p.type === 'year')
+    .map(p => p.type);
+
+  return { year: now.getFullYear(), month: now.getMonth() + 1, names, order };
+}
+
+// Injected into the order history page by chrome.scripting, which serialises
+// it: this must stay self-contained, with no reference to any outer scope.
+function scrapePageOrders(totalPatternStr, priceFormat, monthCtx) {
+  const toAscii = str =>
+    String(str)
+      .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))
+      .replace(/[\u06f0-\u06f9]/g, d => String(d.charCodeAt(0) - 0x06f0));
+
+  const parseAmount = raw => {
+    let clean = toAscii(raw).replace(/[^\d.,]/g, '').trim();
+    if (priceFormat === 'eu') {
+      if (clean.includes('.') && clean.includes(',')) {
+        clean = clean.replace(/\./g, '').replace(',', '.');
+      } else if (clean.includes(',')) {
+        clean = clean.replace(',', '.');
+      } else if (clean.includes('.') && /^\d{1,3}(\.\d{3})+$/.test(clean)) {
+        clean = clean.replace(/\./g, '');
+      }
+    } else {
+      clean = clean.replace(/,/g, '');
+    }
+    return parseFloat(clean) || 0;
+  };
+
+  // Unambiguous forms only: a month name with a four digit year, or the CJK
+  // year/month markers. A bare numeric date is left unparsed rather than
+  // guessed at, because day-first and month-first cannot be told apart.
+  const parseMonthYear = text => {
+    const t = toAscii(text).toLowerCase();
+
+    const cjk = t.match(/(\d{4})\s*年\s*(\d{1,2})\s*月/);
+    if (cjk) return { year: Number(cjk[1]), month: Number(cjk[2]) };
+
+    const year = t.match(/(?:^|\D)(\d{4})(?:\D|$)/);
+
+    if (year) {
+      for (const entry of monthCtx.names) {
+        if (t.includes(entry.name)) {
+          return { year: Number(year[1]), month: entry.month };
+        }
+      }
+    }
+
+    // no month name: read the numeric form using the locale's own field order
+    const numeric = t.match(/(\d{1,4})[./-](\d{1,2})[./-](\d{1,4})/);
+    if (numeric && monthCtx.order && monthCtx.order.length === 3) {
+      const values = [numeric[1], numeric[2], numeric[3]].map(Number);
+      const picked = {};
+      monthCtx.order.forEach((field, i) => {
+        picked[field] = values[i];
+      });
+      if (picked.year && picked.month >= 1 && picked.month <= 12) {
+        return { year: picked.year, month: picked.month };
+      }
+    }
+
+    return null;
+  };
+
+  const totalRegex = new RegExp(totalPatternStr, 'i');
+  const orderCount = document.querySelectorAll('.yohtmlc-order-id').length;
+  const items = document.querySelectorAll('.order-header__header-list-item');
+
+  let pageSum = 0;
+  items.forEach(item => {
+    if (!totalRegex.test(item.innerText)) return;
+    const lines = item.innerText.trim().split('\n');
+    const amount = parseAmount(lines[lines.length - 1]);
+    if (amount > 0) pageSum += amount;
+  });
+
+  // Month to date needs every total paired with its own order's date, so the
+  // orders have to be read per card rather than as one flat list. Anything
+  // that cannot be paired is counted, never silently dropped: the caller
+  // falls back to the 30 day figure rather than under-reporting a limit.
+  let monthSum = 0;
+  let monthUnparsed = 0;
+
+  if (monthCtx) {
+    const cards = document.querySelectorAll('.order-card, .js-order-card');
+    if (!cards.length) {
+      monthUnparsed = orderCount || 1;
+    } else {
+      cards.forEach(card => {
+        const cardItems = card.querySelectorAll(
+          '.order-header__header-list-item',
+        );
+        let amount = null;
+        let when = null;
+
+        cardItems.forEach(item => {
+          const text = item.innerText || '';
+          if (amount === null && totalRegex.test(text)) {
+            const lines = text.trim().split('\n');
+            amount = parseAmount(lines[lines.length - 1]);
+          }
+          if (when === null) when = parseMonthYear(text);
+        });
+
+        if (amount === null || amount <= 0) return; // cancelled or zero total
+        if (!when) {
+          monthUnparsed++;
+          return;
+        }
+        if (when.year === monthCtx.year && when.month === monthCtx.month) {
+          monthSum += amount;
+        }
+      });
+    }
+  }
+
+  return {
+    sum: pageSum,
+    monthSum,
+    monthUnparsed,
+    orderCount,
+    hasNextPage: !!document.querySelector('.a-pagination .a-last a'),
+    isBlocked:
+      document.body.innerText.includes('captcha') ||
+      document.querySelector('form[action*="signin"]') !== null,
+  };
+}
+
+async function scrapeSinglePage(
+  filter,
+  domain,
+  domainConfig,
+  startIndex = 0,
+  monthCtx = null,
+) {
   let url = `https://${domain}/your-orders/orders?timeFilter=${filter}&_scraping=1`;
   if (startIndex > 0) {
     url += `&startIndex=${startIndex}`;
@@ -133,52 +298,8 @@ async function scrapeSinglePage(filter, domain, domainConfig, startIndex = 0) {
           try {
             const results = await chrome.scripting.executeScript({
               target: { tabId: tab.id },
-              func: (totalPatternStr, priceFormat) => {
-                let pageSum = 0;
-                const orderCount = document.querySelectorAll('.yohtmlc-order-id').length;
-                const totalRegex = new RegExp(totalPatternStr, 'i');
-                const items = document.querySelectorAll(
-                  '.order-header__header-list-item',
-                );
-
-                items.forEach(item => {
-                  if (totalRegex.test(item.innerText)) {
-                    const lines = item.innerText.trim().split('\n');
-                    const priceRaw = lines[lines.length - 1];
-                    let clean = priceRaw.replace(/[^\d.,]/g, '').trim();
-                    if (priceFormat === 'eu') {
-                      if (clean.includes('.') && clean.includes(',')) {
-                        clean = clean.replace(/\./g, '').replace(',', '.');
-                      } else if (clean.includes(',')) {
-                        clean = clean.replace(',', '.');
-                      } else if (
-                        clean.includes('.') &&
-                        /^\d{1,3}(\.\d{3})+$/.test(clean)
-                      ) {
-                        clean = clean.replace(/\./g, '');
-                      }
-                    } else if (priceFormat === 'jp') {
-                      clean = clean.replace(/,/g, '');
-                    } else {
-                      clean = clean.replace(/,/g, '');
-                    }
-                    const amount = parseFloat(clean) || 0;
-                    if (amount > 0) {
-                      pageSum += amount;
-                    }
-                  }
-                });
-
-                return {
-                  sum: pageSum,
-                  orderCount: orderCount,
-                  hasNextPage: !!document.querySelector('.a-pagination .a-last a'),
-                  isBlocked:
-                    document.body.innerText.includes('captcha') ||
-                    document.querySelector('form[action*="signin"]') !== null,
-                };
-              },
-              args: [domainConfig.totalPattern, domainConfig.priceFormat],
+              func: scrapePageOrders,
+              args: [domainConfig.totalPattern, domainConfig.priceFormat, monthCtx],
             });
 
             const data = results[0].result;
@@ -201,6 +322,12 @@ async function scrapeWithTab(filter, domain, domainConfig) {
   const maxPages = 20;
   let totalOrders = 0;
   let limitReached = false;
+  let monthSum = 0;
+  let monthUnparsed = 0;
+
+  // month to date is only derived from the 30 day window; the 3 month range
+  // is a rolling figure where a calendar month has no meaning
+  const monthCtx = filter === 'last30' ? buildMonthContext(domainConfig.locale) : null;
 
   for (let page = 0; page < maxPages; page++) {
     const result = await scrapeSinglePage(
@@ -208,6 +335,7 @@ async function scrapeWithTab(filter, domain, domainConfig) {
       domain,
       domainConfig,
       startIndex,
+      monthCtx,
     );
 
     if (result.error === 'TAB_CREATE_FAILED') {
@@ -234,6 +362,8 @@ async function scrapeWithTab(filter, domain, domainConfig) {
 
     totalSum += result.sum;
     totalOrders += result.orderCount;
+    monthSum += result.monthSum || 0;
+    monthUnparsed += result.monthUnparsed || 0;
 
     if (!result.hasNextPage) {
       break;
@@ -254,7 +384,19 @@ async function scrapeWithTab(filter, domain, domainConfig) {
     `[SpendGuard] ${filter} TOTAL: ${totalOrders} orders, ${domainConfig.symbol}${totalSum.toFixed(2)}${limitReached ? ' (limit reached)' : ''}`,
   );
 
-  return { sum: totalSum, orderCount: totalOrders, limitReached };
+  if (monthCtx && monthUnparsed > 0) {
+    console.warn(
+      `[SpendGuard] ${filter} - ${monthUnparsed} order(s) had no readable date; month to date is incomplete`,
+    );
+  }
+
+  return {
+    sum: totalSum,
+    orderCount: totalOrders,
+    limitReached,
+    monthTotal: monthCtx ? monthSum : undefined,
+    monthUnparsed: monthCtx ? monthUnparsed : undefined,
+  };
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -293,6 +435,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({
             total: currentCurrency ? currentCurrency.total : 0,
             orderCount: currentCurrency ? currentCurrency.orderCount : 0,
+            monthTotal:
+              currentCurrency && currentCurrency.hasMonthData
+                ? currentCurrency.monthTotal
+                : undefined,
+            monthUnparsed:
+              currentCurrency && currentCurrency.hasMonthData
+                ? currentCurrency.monthUnparsed
+                : undefined,
             symbol: domainConfig.symbol,
             currency: domainConfig.currency,
             allCurrencies,
@@ -316,6 +466,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           total: result.sum,
           orderCount: result.orderCount,
           limitReached: result.limitReached,
+          monthTotal: result.monthTotal,
+          monthUnparsed: result.monthUnparsed,
         };
         await chrome.storage.local.set({ [storageKey]: { data, ts: now } });
         const allCurrencies = await aggregateAllDomains('30');
@@ -366,6 +518,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({
             total: currentCurrency ? currentCurrency.total : 0,
             orderCount: currentCurrency ? currentCurrency.orderCount : 0,
+            monthTotal:
+              currentCurrency && currentCurrency.hasMonthData
+                ? currentCurrency.monthTotal
+                : undefined,
+            monthUnparsed:
+              currentCurrency && currentCurrency.hasMonthData
+                ? currentCurrency.monthUnparsed
+                : undefined,
             symbol: domainConfig.symbol,
             currency: domainConfig.currency,
             allCurrencies,
@@ -389,6 +549,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           total: result.sum,
           orderCount: result.orderCount,
           limitReached: result.limitReached,
+          monthTotal: result.monthTotal,
+          monthUnparsed: result.monthUnparsed,
         };
         await chrome.storage.local.set({ [storageKey]: { data, ts: now } });
         const allCurrencies = await aggregateAllDomains('3m');

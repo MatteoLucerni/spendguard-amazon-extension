@@ -11,22 +11,42 @@ function showMinimizedIcon() {
   const settings = getSettings();
   const isLoading = isLoading30 || isLoading3M;
 
+  // The pill has room for one figure. Show the chosen range, but fall back to
+  // any other enabled range that does have data rather than showing nothing.
+  const labelFor = {
+    last30: () =>
+      settings.show30Days && cachedSpendingData.total !== undefined
+        ? formatAmountHtml(
+            cachedSpendingData.allCurrencies30,
+            cachedSpendingData.total,
+            cachedSpendingData.symbol,
+          )
+        : null,
+    month: () =>
+      settings.showMonth && cachedSpendingData.monthTotal !== undefined
+        ? `${Math.round(cachedSpendingData.monthTotal)} ${
+            cachedSpendingData.symbol || getCurrentDomainConfig().symbol
+          }`
+        : null,
+    months3: () =>
+      settings.show3Months && cachedSpendingData.total3Months !== undefined
+        ? formatAmountHtml(
+            cachedSpendingData.allCurrencies3M,
+            cachedSpendingData.total3Months,
+            cachedSpendingData.symbol,
+          )
+        : null,
+  };
+
+  const order = [
+    settings.minimizedRange,
+    ...['last30', 'month', 'months3'].filter(r => r !== settings.minimizedRange),
+  ];
+
   let spendingLabel = null;
-  if (settings.show30Days && cachedSpendingData.total !== undefined) {
-    spendingLabel = formatAmountHtml(
-      cachedSpendingData.allCurrencies30,
-      cachedSpendingData.total,
-      cachedSpendingData.symbol,
-    );
-  } else if (
-    settings.show3Months &&
-    cachedSpendingData.total3Months !== undefined
-  ) {
-    spendingLabel = formatAmountHtml(
-      cachedSpendingData.allCurrencies3M,
-      cachedSpendingData.total3Months,
-      cachedSpendingData.symbol,
-    );
+  for (const range of order) {
+    spendingLabel = labelFor[range] ? labelFor[range]() : null;
+    if (spendingLabel !== null) break;
   }
 
   const showAmount = !isLoading && spendingLabel !== null;
@@ -57,7 +77,8 @@ function showMinimizedIcon() {
     icon.style.right = '10px';
   }
 
-  const noRangesEnabled = !settings.show30Days && !settings.show3Months;
+  const noRangesEnabled =
+    !settings.show30Days && !settings.showMonth && !settings.show3Months;
 
   if (showAmount) {
     icon.style.width = 'auto';
@@ -255,7 +276,9 @@ function injectPopup(data) {
   popup.id = POPUP_ID;
 
   const enabledCount =
-    (settings.show30Days ? 1 : 0) + (settings.show3Months ? 1 : 0);
+    (settings.show30Days ? 1 : 0) +
+    (settings.showMonth ? 1 : 0) +
+    (settings.show3Months ? 1 : 0);
   const rc = getResponsiveConfig();
 
   const baseStyle = {
@@ -323,12 +346,43 @@ function injectPopup(data) {
         </div>`;
   }
 
+  let monthContent = '';
+  if (settings.showMonth) {
+    const separatorM = settings.show30Days
+      ? 'border-top:1px solid #e7e7e7; padding-top:4px;'
+      : '';
+    const monthUnknown = data.monthTotal === undefined;
+    const monthPartial = !monthUnknown && data.monthUnparsed > 0;
+    const innerMonth = is30DaysLoading
+      ? `<div>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:8px;">
+            <span style="color:#565959; white-space:nowrap;">This month:</span>
+            <div class="amz-skeleton-bar" style="width:50px; height:14px; flex-shrink:0;"></div>
+          </div>
+        </div>`
+      : `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:8px;">
+          <span style="color:#565959; white-space:nowrap;">This month:</span>
+          <b style="color:#B12704; font-size:14px; white-space:nowrap; flex-shrink:0;">${
+            monthUnknown
+              ? '--'
+              : `${Math.round(data.monthTotal)} ${data.symbol || getCurrentDomainConfig().symbol}`
+          }</b>
+        </div>
+        ${
+          monthPartial
+            ? `<div style="font-size:10px; color:#ff9900;">⚠ ${data.monthUnparsed} order${data.monthUnparsed !== 1 ? 's' : ''} with an unreadable date</div>`
+            : ''
+        }`;
+    monthContent = `<div style="${separatorM}">${innerMonth}</div>`;
+  }
+
   let threeMonthsContent = '';
   if (settings.show3Months) {
     const time3M = data.updatedAt3M ? formatRelativeTime(data.updatedAt3M) : '';
-    const separator = settings.show30Days
-      ? 'border-top:1px solid #e7e7e7; padding-top:4px;'
-      : '';
+    const separator =
+      settings.show30Days || settings.showMonth
+        ? 'border-top:1px solid #e7e7e7; padding-top:4px;'
+        : '';
     const innerContent = is3MonthsLoading
       ? `<div>
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:8px;">
@@ -357,9 +411,20 @@ function injectPopup(data) {
         </div>`
       : '';
 
-  const lockStatusMessage = settings.interfaceLockEnabled
-    ? `<div style="font-size:10px; color:#565959; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">Lock: ${settings.lockStartTime} - ${settings.lockEndTime}</div>`
-    : `<div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">Lock not configured</div>`;
+  const lockLine = settings.interfaceLockEnabled
+    ? `Lock: ${settings.lockStartTime} - ${settings.lockEndTime}`
+    : null;
+  const limitLine =
+    settings.spendingLimitEnabled && Number(settings.spendingLimitAmount) > 0
+      ? `Limit: ${Math.round(Number(settings.spendingLimitAmount))} ${getCurrentDomainConfig().symbol} / ${
+          settings.spendingLimitRange === 'month' ? 'month' : '30d'
+        }${settings.spendingLimitMode === 'purchase' ? ' (buying)' : ''}`
+      : null;
+  const statusLines = [lockLine, limitLine].filter(Boolean);
+
+  const lockStatusMessage = statusLines.length
+    ? `<div style="font-size:10px; color:#565959; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">${statusLines.join('<br>')}</div>`
+    : `<div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">No limits set</div>`;
 
   popup.innerHTML = `
         ${SPINNER_STYLE}
@@ -373,6 +438,7 @@ function injectPopup(data) {
         </div>
         <div style="padding:8px 8px 10px 8px; display:flex; flex-direction:column; gap:4px; font-size:12px;">
             ${thirtyDaysContent}
+            ${monthContent}
             ${threeMonthsContent}
             ${noRangesMessage}
             ${lockStatusMessage}

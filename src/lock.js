@@ -56,7 +56,7 @@ function formatLockTime(hours, minutes, seconds) {
   return `${minutes}:${pad(seconds)}`;
 }
 
-function showLockOverlay(settings, spendingData) {
+function showLockOverlay(settings, spendingData, reason = 'time') {
   const existingOverlay = document.getElementById('amz-lock-overlay');
   if (existingOverlay) existingOverlay.remove();
 
@@ -82,8 +82,24 @@ function showLockOverlay(settings, spendingData) {
     color: '#ffffff',
   });
 
+  const isLimitLock = reason === 'limit';
+  let limitRangeLabel = SPENDING_LIMIT_RANGE_LABELS.last30;
+
   let spendingInfo = '';
-  if (spendingData) {
+  if (isLimitLock && spendingData) {
+    const symbol = getCurrentDomainConfig().symbol;
+    const spend = getLimitSpend(settings, spendingData);
+    limitRangeLabel = SPENDING_LIMIT_RANGE_LABELS[spend ? spend.range : 'last30'];
+    const spent = Math.round(spend ? spend.total : spendingData.total);
+    const limit = Math.round(Number(settings.spendingLimitAmount));
+    spendingInfo = `
+      <div style="margin-top:50px; text-align:center;">
+        <div style="font-size:clamp(12px, 2vw, 16px); color:#ff9900; margin-bottom:16px;">You have spent</div>
+        <div style="font-size:clamp(28px, 7vw, 56px); font-weight:700; color:#ff9900; line-height:1;">${spent} ${symbol}</div>
+        <div style="font-size:clamp(12px, 2vw, 15px); color:#a0a0a0; margin-top:12px;">of your ${limit} ${symbol} limit, ${limitRangeLabel}</div>
+      </div>
+    `;
+  } else if (spendingData) {
     let amount = null;
     let rangeLabel = '';
     let allCurrencies = null;
@@ -114,12 +130,21 @@ function showLockOverlay(settings, spendingData) {
     }
   }
 
-  const timeLeft = calculateTimeUntilUnlock(settings);
-  const formattedTime = formatLockTime(
-    timeLeft.hours,
-    timeLeft.minutes,
-    timeLeft.seconds,
-  );
+  let countdownBlock = '';
+  if (!isLimitLock) {
+    const timeLeft = calculateTimeUntilUnlock(settings);
+    const formattedTime = formatLockTime(
+      timeLeft.hours,
+      timeLeft.minutes,
+      timeLeft.seconds,
+    );
+    countdownBlock = `
+      <div style="margin-top:40px; text-align:center;">
+        <div style="font-size:clamp(11px, 2vw, 14px); color:#a0a0a0; margin-bottom:25px;">Unlocks in</div>
+        <div id="amz-lock-timer" style="font-size:clamp(32px, 8vw, 64px); font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:2px;">${formattedTime}</div>
+      </div>
+    `;
+  }
 
   overlay.innerHTML = `
     <style>
@@ -133,13 +158,10 @@ function showLockOverlay(settings, spendingData) {
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
-      <h1 style="font-size:clamp(18px, 4vw, 28px); font-weight:700; margin:20px 0 10px 0;">Amazon is Locked</h1>
-      <p style="font-size:clamp(11px, 2vw, 14px); color:#a0a0a0; margin:0;">Time set: ${settings.lockStartTime} - ${settings.lockEndTime}</p>
+      <h1 style="font-size:clamp(18px, 4vw, 28px); font-weight:700; margin:20px 0 10px 0;">${isLimitLock ? 'Spending Limit Reached' : 'Amazon is Locked'}</h1>
+      <p style="font-size:clamp(11px, 2vw, 14px); color:#a0a0a0; margin:0;">${isLimitLock ? `Unlocks when your spending ${limitRangeLabel} falls back under the limit` : `Time set: ${settings.lockStartTime} - ${settings.lockEndTime}`}</p>
     </div>
-    <div style="margin-top:40px; text-align:center;">
-      <div style="font-size:clamp(11px, 2vw, 14px); color:#a0a0a0; margin-bottom:25px;">Unlocks in</div>
-      <div id="amz-lock-timer" style="font-size:clamp(32px, 8vw, 64px); font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:2px;">${formattedTime}</div>
-    </div>
+    ${countdownBlock}
     ${spendingInfo}
     <div style="position:absolute; bottom:clamp(10px, 3vh, 30px); left:0; right:0; text-align:center;">
       <img src="${chrome.runtime.getURL('assets/images/icons/amz_icon.png')}" alt="SpendGuard for Amazon™" style="width:24px; height:24px; margin-bottom:8px;">
@@ -149,7 +171,14 @@ function showLockOverlay(settings, spendingData) {
 
   document.body.appendChild(overlay);
 
-  startLockTimer(settings);
+  attachUnlockControl(overlay, () => {
+    removeLockOverlay();
+    loadData(true);
+  });
+
+  if (!isLimitLock) {
+    startLockTimer(settings);
+  }
 }
 
 function startLockTimer(settings) {
@@ -256,4 +285,64 @@ function loadSpendingDataForLock(callback) {
   } else {
     callback(null);
   }
+}
+
+const SPENDING_LIMIT_RANGE_LABELS = {
+  last30: 'in the last 30 days',
+  month: 'this month',
+};
+
+// Picks the figure the limit is measured against. A month to date total that
+// is missing (a cache written before this existed) or incomplete (an order
+// whose date could not be read) falls back to the 30 day total: for a spending
+// limit, blocking early is the safe direction to be wrong in.
+function getLimitSpend(settings, spendingData) {
+  if (!spendingData || typeof spendingData.total !== 'number') return null;
+
+  if (settings.spendingLimitRange === 'month') {
+    if (
+      typeof spendingData.monthTotal === 'number' &&
+      !spendingData.monthUnparsed
+    ) {
+      return { total: spendingData.monthTotal, range: 'month' };
+    }
+    console.warn(
+      '[SpendGuard] month to date unavailable or incomplete; measuring the limit against the last 30 days instead',
+    );
+    return { total: spendingData.total, range: 'last30', fellBack: true };
+  }
+
+  return { total: spendingData.total, range: 'last30' };
+}
+
+function isOverSpendingLimit(settings, spendingData) {
+  if (!settings.spendingLimitEnabled) return false;
+
+  const limit = Number(settings.spendingLimitAmount);
+  if (!(limit > 0)) return false;
+
+  const spend = getLimitSpend(settings, spendingData);
+  if (!spend) return false;
+
+  return spend.total >= limit;
+}
+
+function loadSpendingDataForLimit(callback) {
+  safeSendMessage({ action: 'GET_SPENDING_30', cacheOnly: true }, response => {
+    if (
+      response &&
+      !response.error &&
+      !response.noCache &&
+      response.total !== undefined
+    ) {
+      callback({
+        total: response.total,
+        monthTotal: response.monthTotal,
+        monthUnparsed: response.monthUnparsed,
+        allCurrencies: response.allCurrencies,
+      });
+      return;
+    }
+    callback(null);
+  });
 }

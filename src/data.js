@@ -29,6 +29,8 @@ function refreshRange(range) {
         cachedSpendingData = {
           ...cachedSpendingData,
           total: response.total,
+          monthTotal: response.monthTotal,
+          monthUnparsed: response.monthUnparsed,
           orderCount: response.orderCount,
           limitReached: response.limitReached,
           updatedAt30: response.updatedAt,
@@ -71,7 +73,7 @@ function refreshRange(range) {
 function refreshAll() {
   const settings = getSettings();
 
-  const will30Load = settings.show30Days && !isLoading30;
+  const will30Load = (settings.show30Days || settings.showMonth) && !isLoading30;
   const will3MLoad = settings.show3Months && !isLoading3M;
 
   if (!will30Load && !will3MLoad) return;
@@ -102,6 +104,8 @@ function refreshAll() {
         cachedSpendingData = {
           ...cachedSpendingData,
           total: response30.total,
+          monthTotal: response30.monthTotal,
+          monthUnparsed: response30.monthUnparsed,
           orderCount: response30.orderCount,
           limitReached: response30.limitReached,
           updatedAt30: response30.updatedAt,
@@ -166,7 +170,7 @@ function loadData(showLoading = true) {
   const settings = getSettings();
   const savedState = getPopupState();
 
-  if (!settings.show30Days && !settings.show3Months) {
+  if (!settings.show30Days && !settings.showMonth && !settings.show3Months) {
     if (savedState.isMinimized) {
       showMinimizedIcon();
     } else {
@@ -176,7 +180,7 @@ function loadData(showLoading = true) {
   }
 
   const need30Days =
-    settings.show30Days &&
+    (settings.show30Days || settings.showMonth) &&
     cachedSpendingData?.total === undefined &&
     !isLoading30;
   const need3Months =
@@ -218,6 +222,8 @@ function loadData(showLoading = true) {
         cachedSpendingData = {
           ...cachedSpendingData,
           total: response30.total,
+          monthTotal: response30.monthTotal,
+          monthUnparsed: response30.monthUnparsed,
           orderCount: response30.orderCount,
           limitReached: response30.limitReached,
           updatedAt30: response30.updatedAt,
