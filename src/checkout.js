@@ -85,6 +85,12 @@ function observeCheckoutPage() {
     return;
   }
 
+  // Amazon's SPC checkout renders no #subtotals at all, so the observer below
+  // could never fire there. Before checkout detection was fixed this code
+  // simply never ran on that page; now that it does, skip rather than watch
+  // the whole subtree for ten seconds for an anchor that cannot appear.
+  if (/\/gp\/buy\//.test(window.location.pathname)) return;
+
   const observer = new MutationObserver((mutations, obs) => {
     const subtotals = document.getElementById('subtotals');
     if (subtotals) {
