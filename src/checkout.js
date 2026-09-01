@@ -67,7 +67,11 @@ function handleCheckoutPage() {
           response30.total !== undefined &&
           response30.total > 0
         ) {
-          injectCheckoutAlert(response30.total, 'This month', response30.allCurrencies, response30.allCurrencies);
+          injectCheckoutAlert(
+            response30.total,
+            'In the last 30 days',
+            response30.allCurrencies,
+          );
           return;
         }
         tryThreeMonths();
@@ -84,6 +88,12 @@ function observeCheckoutPage() {
     handleCheckoutPage();
     return;
   }
+
+  // Amazon's SPC checkout renders no #subtotals at all, so the observer below
+  // could never fire there. Before checkout detection was fixed this code
+  // simply never ran on that page; now that it does, skip rather than watch
+  // the whole subtree for ten seconds for an anchor that cannot appear.
+  if (/\/gp\/buy\//.test(window.location.pathname)) return;
 
   const observer = new MutationObserver((mutations, obs) => {
     const subtotals = document.getElementById('subtotals');

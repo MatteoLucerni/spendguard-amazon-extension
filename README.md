@@ -62,7 +62,7 @@ All data is processed and stored locally in your browser. There are no external 
 ### Floating Popup Widget
 
 - **Draggable popup** that snaps to left/right sides of the viewport
-- **Minimize to icon**: compact pill showing your spending total at a glance
+- **Minimize to icon**: compact pill showing your spending total at a glance, with a setting for which range it shows
 - **Responsive design**: three layout tiers: mobile (≤480px), tablet (≤768px), desktop
 - **Relative timestamps**: "5 min ago", "2 hours ago" for last refresh time
 
@@ -76,6 +76,16 @@ All data is processed and stored locally in your browser. There are no external 
 - **Full-screen lock overlay** with live countdown timer until unlock
 - **Confirmation dialog with countdown** to prevent accidental activation
 - **Spending summary visible** on the lock screen
+
+### Spending Limit
+
+- **Spend-based blocking**: set a 30-day spending limit; once you cross it, Amazon is blocked
+- **Two windows**: measure the limit over a rolling **last 30 days**, or over the **current calendar month**, which resets on the 1st
+- **Two modes**: *Block buying* (default) leaves browsing and tracking working but disables the controls that start a purchase; *Block Amazon* escalates to locking the whole site behind the full-screen overlay
+- **Month to date is also a display range**, so the widget can show what you have spent since the 1st alongside the other totals
+- **Checkout is always locked** in either mode, so a missed buy button can't slip a purchase through
+- **Confirmation dialog with countdown** to prevent accidental activation
+- **Off by default**, and inert until you set an amount above zero
 
 ### Onboarding
 
@@ -198,6 +208,7 @@ amazon-spending-tracker-extension/
 │   ├── data.js                # Data loading, refresh orchestration, caching
 │   ├── checkout.js            # Checkout page spending warning banner
 │   ├── lock.js                # Interface lock overlay with countdown
+│   ├── purchase-block.js      # Disables buy controls when over the spending limit
 │   └── onboarding.js          # Welcome gate and 6-step spotlight tour
 ├── assets/
 │   └── images/
@@ -224,10 +235,16 @@ The extension provides the following user-configurable options, accessible via t
 | Setting            | Default     | Description                       |
 | ------------------ | ----------- | --------------------------------- |
 | Show Last 30 Days  | ✅ Enabled  | Display 30-day spending total     |
+| Show This Month    | ❌ Disabled | Display spending since the 1st (from the 30-day range) |
 | Show Last 3 Months | ✅ Enabled  | Display 3-month spending total    |
+| Minimized Total    | Last 30 days | Which figure the collapsed pill shows |
 | Interface Lock     | ❌ Disabled | Enable time-based Amazon blocking |
 | Lock Start Time    | 09:00       | Start of the lock window          |
 | Lock End Time      | 17:00       | End of the lock window            |
+| Spending Limit     | ❌ Disabled | Block Amazon once the 30-day total reaches the limit |
+| Limit Amount       | 0           | The 30-day limit, in the current domain's currency |
+| Limit Window       | Last 30 days | Measure the limit over the last 30 days, or the current calendar month |
+| Limit Mode         | Block buying | What happens over the limit: block buying, or escalate to the whole site |
 
 The interface lock supports overnight ranges (e.g. 22:00-06:00). Enabling the lock requires explicit confirmation through a dialog with a 3-second countdown.
 
