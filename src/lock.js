@@ -83,17 +83,20 @@ function showLockOverlay(settings, spendingData, reason = 'time') {
   });
 
   const isLimitLock = reason === 'limit';
+  let limitRangeLabel = SPENDING_LIMIT_RANGE_LABELS.last30;
 
   let spendingInfo = '';
   if (isLimitLock && spendingData) {
     const symbol = getCurrentDomainConfig().symbol;
-    const spent = Math.round(spendingData.total);
+    const spend = getLimitSpend(settings, spendingData);
+    limitRangeLabel = SPENDING_LIMIT_RANGE_LABELS[spend ? spend.range : 'last30'];
+    const spent = Math.round(spend ? spend.total : spendingData.total);
     const limit = Math.round(Number(settings.spendingLimitAmount));
     spendingInfo = `
       <div style="margin-top:50px; text-align:center;">
         <div style="font-size:clamp(12px, 2vw, 16px); color:#ff9900; margin-bottom:16px;">You have spent</div>
         <div style="font-size:clamp(28px, 7vw, 56px); font-weight:700; color:#ff9900; line-height:1;">${spent} ${symbol}</div>
-        <div style="font-size:clamp(12px, 2vw, 15px); color:#a0a0a0; margin-top:12px;">of your ${limit} ${symbol} limit, in the last 30 days</div>
+        <div style="font-size:clamp(12px, 2vw, 15px); color:#a0a0a0; margin-top:12px;">of your ${limit} ${symbol} limit, ${limitRangeLabel}</div>
       </div>
     `;
   } else if (spendingData) {
@@ -156,7 +159,7 @@ function showLockOverlay(settings, spendingData, reason = 'time') {
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
       <h1 style="font-size:clamp(18px, 4vw, 28px); font-weight:700; margin:20px 0 10px 0;">${isLimitLock ? 'Spending Limit Reached' : 'Amazon is Locked'}</h1>
-      <p style="font-size:clamp(11px, 2vw, 14px); color:#a0a0a0; margin:0;">${isLimitLock ? 'Unlocks when your 30-day spending falls back under the limit' : `Time set: ${settings.lockStartTime} - ${settings.lockEndTime}`}</p>
+      <p style="font-size:clamp(11px, 2vw, 14px); color:#a0a0a0; margin:0;">${isLimitLock ? `Unlocks when your spending ${limitRangeLabel} falls back under the limit` : `Time set: ${settings.lockStartTime} - ${settings.lockEndTime}`}</p>
     </div>
     ${countdownBlock}
     ${spendingInfo}
@@ -279,15 +282,44 @@ function loadSpendingDataForLock(callback) {
   }
 }
 
+const SPENDING_LIMIT_RANGE_LABELS = {
+  last30: 'in the last 30 days',
+  month: 'this month',
+};
+
+// Picks the figure the limit is measured against. A month to date total that
+// is missing (a cache written before this existed) or incomplete (an order
+// whose date could not be read) falls back to the 30 day total: for a spending
+// limit, blocking early is the safe direction to be wrong in.
+function getLimitSpend(settings, spendingData) {
+  if (!spendingData || typeof spendingData.total !== 'number') return null;
+
+  if (settings.spendingLimitRange === 'month') {
+    if (
+      typeof spendingData.monthTotal === 'number' &&
+      !spendingData.monthUnparsed
+    ) {
+      return { total: spendingData.monthTotal, range: 'month' };
+    }
+    console.warn(
+      '[SpendGuard] month to date unavailable or incomplete; measuring the limit against the last 30 days instead',
+    );
+    return { total: spendingData.total, range: 'last30', fellBack: true };
+  }
+
+  return { total: spendingData.total, range: 'last30' };
+}
+
 function isOverSpendingLimit(settings, spendingData) {
   if (!settings.spendingLimitEnabled) return false;
 
   const limit = Number(settings.spendingLimitAmount);
   if (!(limit > 0)) return false;
 
-  if (!spendingData || typeof spendingData.total !== 'number') return false;
+  const spend = getLimitSpend(settings, spendingData);
+  if (!spend) return false;
 
-  return spendingData.total >= limit;
+  return spend.total >= limit;
 }
 
 function loadSpendingDataForLimit(callback) {
@@ -300,6 +332,8 @@ function loadSpendingDataForLimit(callback) {
     ) {
       callback({
         total: response.total,
+        monthTotal: response.monthTotal,
+        monthUnparsed: response.monthUnparsed,
         allCurrencies: response.allCurrencies,
       });
       return;

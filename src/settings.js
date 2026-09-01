@@ -7,9 +7,17 @@ const SETTINGS_DEFAULTS = {
   spendingLimitEnabled: false,
   spendingLimitAmount: 0,
   spendingLimitMode: 'purchase',
+  spendingLimitRange: 'last30',
 };
 
 const SPENDING_LIMIT_MODES = ['site', 'purchase'];
+const SPENDING_LIMIT_RANGES = ['last30', 'month'];
+
+function normalizeSpendingLimitRange(value) {
+  return SPENDING_LIMIT_RANGES.includes(value)
+    ? value
+    : SETTINGS_DEFAULTS.spendingLimitRange;
+}
 
 function normalizeSpendingLimitMode(value) {
   return SPENDING_LIMIT_MODES.includes(value)
@@ -57,6 +65,9 @@ function initSettings(callback) {
             ? parsed.spendingLimitAmount
             : SETTINGS_DEFAULTS.spendingLimitAmount,
         spendingLimitMode: normalizeSpendingLimitMode(parsed.spendingLimitMode),
+        spendingLimitRange: normalizeSpendingLimitRange(
+          parsed.spendingLimitRange,
+        ),
       };
     } else if (legacySaved) {
       try {
@@ -86,6 +97,9 @@ function initSettings(callback) {
               : SETTINGS_DEFAULTS.spendingLimitAmount,
           spendingLimitMode: normalizeSpendingLimitMode(
             parsed.spendingLimitMode,
+          ),
+          spendingLimitRange: normalizeSpendingLimitRange(
+            parsed.spendingLimitRange,
           ),
         };
         chrome.storage.local.set({ [SETTINGS_KEY]: _settingsCache });

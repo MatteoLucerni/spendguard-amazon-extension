@@ -362,9 +362,9 @@ function injectPopup(data) {
     : null;
   const limitLine =
     settings.spendingLimitEnabled && Number(settings.spendingLimitAmount) > 0
-      ? `Limit: ${Math.round(Number(settings.spendingLimitAmount))} ${getCurrentDomainConfig().symbol}${
-          settings.spendingLimitMode === 'purchase' ? ' (buying)' : ''
-        }`
+      ? `Limit: ${Math.round(Number(settings.spendingLimitAmount))} ${getCurrentDomainConfig().symbol} / ${
+          settings.spendingLimitRange === 'month' ? 'month' : '30d'
+        }${settings.spendingLimitMode === 'purchase' ? ' (buying)' : ''}`
       : null;
   const statusLines = [lockLine, limitLine].filter(Boolean);
 

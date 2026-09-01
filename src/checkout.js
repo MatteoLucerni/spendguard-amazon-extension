@@ -67,7 +67,11 @@ function handleCheckoutPage() {
           response30.total !== undefined &&
           response30.total > 0
         ) {
-          injectCheckoutAlert(response30.total, 'This month', response30.allCurrencies, response30.allCurrencies);
+          injectCheckoutAlert(
+            response30.total,
+            'In the last 30 days',
+            response30.allCurrencies,
+          );
           return;
         }
         tryThreeMonths();

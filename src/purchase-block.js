@@ -69,7 +69,9 @@ function handleBlockedPurchaseSubmit(event) {
 
 function buildPurchaseBlockBanner(settings, spendingData) {
   const symbol = getCurrentDomainConfig().symbol;
-  const spent = Math.round(spendingData.total);
+  const spend = getLimitSpend(settings, spendingData);
+  const rangeLabel = SPENDING_LIMIT_RANGE_LABELS[spend ? spend.range : 'last30'];
+  const spent = Math.round(spend ? spend.total : spendingData.total);
   const limit = Math.round(Number(settings.spendingLimitAmount));
 
   const banner = document.createElement('div');
@@ -99,7 +101,7 @@ function buildPurchaseBlockBanner(settings, spendingData) {
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
       <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
     </svg>
-    <span>Buying is blocked &mdash; you have spent <strong style="color:#ff9900;">${spent} ${symbol}</strong> of your ${limit} ${symbol} limit in the last 30 days. Browsing still works.</span>
+    <span>Buying is blocked &mdash; you have spent <strong style="color:#ff9900;">${spent} ${symbol}</strong> of your ${limit} ${symbol} limit ${rangeLabel}. Browsing still works.</span>
   `;
 
   return banner;

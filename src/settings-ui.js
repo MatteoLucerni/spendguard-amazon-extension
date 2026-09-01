@@ -184,7 +184,7 @@ function showSettingsView() {
 
       <div class="amz-section-divider">
         <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-          <span style="display:flex; align-items:center; font-weight:600;">Spending Limit<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Blocks Amazon once you have spent more than this in the last 30 days</span></span></span>
+          <span style="display:flex; align-items:center; font-weight:600;">Spending Limit<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Blocks Amazon once you have spent more than this over the chosen period</span></span></span>
           <div class="amz-toggle">
             <input type="checkbox" id="amz-setting-limit" ${settings.spendingLimitEnabled ? 'checked' : ''}>
             <span class="slider"></span>
@@ -194,6 +194,13 @@ function showSettingsView() {
           <span style="color:#565959; font-size:11px; width:32px;">Max:</span>
           <input type="number" min="0" step="1" id="amz-limit-amount" class="amz-amount-input" value="${settings.spendingLimitAmount}">
           <span style="color:#565959; font-size:11px;">${getCurrentDomainConfig().symbol}</span>
+        </div>
+        <div id="amz-limit-range-row" style="margin-top:6px; display:${settings.spendingLimitEnabled ? 'flex' : 'none'}; align-items:center; gap:8px;">
+          <span style="color:#565959; font-size:11px; width:32px;">Over:</span>
+          <select id="amz-limit-range" class="amz-amount-input">
+            <option value="last30" ${settings.spendingLimitRange === 'last30' ? 'selected' : ''}>Last 30 days</option>
+            <option value="month" ${settings.spendingLimitRange === 'month' ? 'selected' : ''}>This month</option>
+          </select>
         </div>
         <div id="amz-limit-mode-row" style="margin-top:6px; display:${settings.spendingLimitEnabled ? 'flex' : 'none'}; align-items:center; gap:8px;">
           <span style="color:#565959; font-size:11px; width:32px;">Then:</span>
@@ -274,6 +281,7 @@ function showSettingsView() {
       spendingLimitAmount:
         parseFloat(document.getElementById('amz-limit-amount').value) || 0,
       spendingLimitMode: document.getElementById('amz-limit-mode').value,
+      spendingLimitRange: document.getElementById('amz-limit-range').value,
     };
   }
 
@@ -311,6 +319,7 @@ function showSettingsView() {
     const limitCheckbox = document.getElementById('amz-setting-limit');
     const limitRow = document.getElementById('amz-limit-amount-row');
     const limitModeRow = document.getElementById('amz-limit-mode-row');
+    const limitRangeRow = document.getElementById('amz-limit-range-row');
 
     if (limitCheckbox.checked) {
       showLockConfirmDialog(
@@ -319,6 +328,7 @@ function showSettingsView() {
           // 30-day range is on - otherwise the limit would never fire
           document.getElementById('amz-setting-30days').checked = true;
           limitRow.style.display = 'flex';
+          limitRangeRow.style.display = 'flex';
           limitModeRow.style.display = 'flex';
           saveCurrentSettings();
         },
@@ -327,14 +337,20 @@ function showSettingsView() {
         },
         {
           title: 'Enable Spending Limit?',
-          body:
-            document.getElementById('amz-limit-mode').value === 'purchase'
-              ? `Buy buttons will be disabled, and checkout blocked, once you have spent more than your limit in the last 30 days. Browsing keeps working.`
-              : `Amazon will be blocked once you have spent more than your limit in the last 30 days. <strong style="color:#0f1111;">You won't be able to change this setting while blocked.</strong>`,
+          body: (() => {
+            const period =
+              document.getElementById('amz-limit-range').value === 'month'
+                ? 'this month'
+                : 'in the last 30 days';
+            return document.getElementById('amz-limit-mode').value === 'purchase'
+              ? `Buy buttons will be disabled, and checkout blocked, once you have spent more than your limit ${period}. Browsing keeps working.`
+              : `Amazon will be blocked once you have spent more than your limit ${period}. <strong style="color:#0f1111;">You won't be able to change this setting while blocked.</strong>`;
+          })(),
         },
       );
     } else {
       limitRow.style.display = 'none';
+      limitRangeRow.style.display = 'none';
       limitModeRow.style.display = 'none';
       saveCurrentSettings();
     }
@@ -342,6 +358,7 @@ function showSettingsView() {
 
   document.getElementById('amz-limit-amount').onchange = saveCurrentSettings;
   document.getElementById('amz-limit-mode').onchange = saveCurrentSettings;
+  document.getElementById('amz-limit-range').onchange = saveCurrentSettings;
 
   popup.querySelectorAll('.amz-help-icon').forEach(icon => {
     const tooltip = icon.querySelector('.amz-help-tooltip');
