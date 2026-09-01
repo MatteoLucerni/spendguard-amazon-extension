@@ -155,6 +155,13 @@ function showSettingsView() {
         </div>
       </label>
       <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+        <span style="display:flex; align-items:center;">This month<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Spent since the 1st. Read from the last 30 days of orders, so that range is fetched too</span></span></span>
+        <div class="amz-toggle">
+          <input type="checkbox" id="amz-setting-month" ${settings.showMonth ? 'checked' : ''}>
+          <span class="slider"></span>
+        </div>
+      </label>
+      <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
         <span style="display:flex; align-items:center;">Last 3 months<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Shows total spent in the last 3 months</span></span></span>
         <div class="amz-toggle">
           <input type="checkbox" id="amz-setting-3months" ${settings.show3Months ? 'checked' : ''}>
@@ -273,6 +280,7 @@ function showSettingsView() {
   function getCurrentSettingsFromForm() {
     return {
       show30Days: document.getElementById('amz-setting-30days').checked,
+      showMonth: document.getElementById('amz-setting-month').checked,
       show3Months: document.getElementById('amz-setting-3months').checked,
       interfaceLockEnabled: document.getElementById('amz-setting-lock').checked,
       lockStartTime: document.getElementById('amz-lock-start').value,
@@ -290,6 +298,7 @@ function showSettingsView() {
   };
 
   document.getElementById('amz-setting-30days').onchange = saveCurrentSettings;
+  document.getElementById('amz-setting-month').onchange = saveCurrentSettings;
   document.getElementById('amz-setting-3months').onchange = saveCurrentSettings;
 
   document.getElementById('amz-setting-lock').onchange = () => {

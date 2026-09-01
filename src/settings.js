@@ -1,5 +1,6 @@
 const SETTINGS_DEFAULTS = {
   show30Days: true,
+  showMonth: false,
   show3Months: true,
   interfaceLockEnabled: false,
   lockStartTime: '09:00',
@@ -48,6 +49,10 @@ function initSettings(callback) {
           parsed.show30Days !== undefined
             ? parsed.show30Days
             : SETTINGS_DEFAULTS.show30Days,
+        showMonth:
+          parsed.showMonth !== undefined
+            ? parsed.showMonth
+            : SETTINGS_DEFAULTS.showMonth,
         show3Months:
           parsed.show3Months !== undefined
             ? parsed.show3Months
@@ -77,6 +82,10 @@ function initSettings(callback) {
             parsed.show30Days !== undefined
               ? parsed.show30Days
               : SETTINGS_DEFAULTS.show30Days,
+          showMonth:
+            parsed.showMonth !== undefined
+              ? parsed.showMonth
+              : SETTINGS_DEFAULTS.showMonth,
           show3Months:
             parsed.show3Months !== undefined
               ? parsed.show3Months

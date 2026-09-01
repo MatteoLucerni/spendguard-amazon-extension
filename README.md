@@ -82,6 +82,7 @@ All data is processed and stored locally in your browser. There are no external 
 - **Spend-based blocking**: set a 30-day spending limit; once you cross it, Amazon is blocked
 - **Two windows**: measure the limit over a rolling **last 30 days**, or over the **current calendar month**, which resets on the 1st
 - **Two modes**: *Block buying* (default) leaves browsing and tracking working but disables the controls that start a purchase; *Block Amazon* escalates to locking the whole site behind the full-screen overlay
+- **Month to date is also a display range**, so the widget can show what you have spent since the 1st alongside the other totals
 - **Checkout is always locked** in either mode, so a missed buy button can't slip a purchase through
 - **Confirmation dialog with countdown** to prevent accidental activation
 - **Off by default**, and inert until you set an amount above zero
@@ -234,6 +235,7 @@ The extension provides the following user-configurable options, accessible via t
 | Setting            | Default     | Description                       |
 | ------------------ | ----------- | --------------------------------- |
 | Show Last 30 Days  | ✅ Enabled  | Display 30-day spending total     |
+| Show This Month    | ❌ Disabled | Display spending since the 1st (from the 30-day range) |
 | Show Last 3 Months | ✅ Enabled  | Display 3-month spending total    |
 | Interface Lock     | ❌ Disabled | Enable time-based Amazon blocking |
 | Lock Start Time    | 09:00       | Start of the lock window          |
