@@ -57,6 +57,15 @@ const PURCHASE_CONTROL_SELECTORS = [
 
 const AMAZON_MATCH_PATTERNS = Object.keys(AMAZON_DOMAINS).map(d => `https://${d}/*`);
 
+// Amazon's checkout does not have "checkout" in its URL: on amazon.com it is
+// /gp/buy/spc/handlers/display.html. Matching the literal string alone misses
+// the real checkout entirely.
+const CHECKOUT_URL_PATTERN = /\/gp\/buy\/|\/checkout\/|checkout/i;
+
+function isAmazonCheckoutPage(href) {
+  return CHECKOUT_URL_PATTERN.test(href || window.location.href);
+}
+
 function getAmazonDomainConfig(hostname) {
   return AMAZON_DOMAINS[hostname] || AMAZON_DOMAINS['www.amazon.com'];
 }

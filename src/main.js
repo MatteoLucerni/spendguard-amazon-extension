@@ -1,5 +1,5 @@
 function continueAfterLockChecks() {
-  if (window.location.href.includes('checkout')) {
+  if (isAmazonCheckoutPage()) {
     observeCheckoutPage();
     return;
   }
@@ -41,7 +41,7 @@ function checkOnboardingAndInit() {
           // is buy, and blocking it by button selector is far more brittle
           if (
             settings.spendingLimitMode === 'purchase' &&
-            !window.location.href.includes('checkout')
+            !isAmazonCheckoutPage()
           ) {
             applyPurchaseBlock(settings, spendingData);
             continueAfterLockChecks();
