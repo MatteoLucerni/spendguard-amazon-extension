@@ -130,7 +130,7 @@ function showSettingsView() {
       .amz-toggle input:checked + .slider:before { transform:translateX(12px); }
       .amz-time-input { width:95px; padding:4px 6px; border:1px solid #d5d9d9; border-radius:4px; font-size:12px; font-family:inherit; }
       .amz-time-input:focus { outline:none; border-color:#232f3e; }
-      .amz-amount-input { width:95px; padding:4px 6px; border:1px solid #d5d9d9; border-radius:4px; font-size:12px; font-family:inherit; }
+      .amz-amount-input { width:95px; max-width:100%; box-sizing:border-box; padding:4px 6px; border:1px solid #d5d9d9; border-radius:4px; font-size:12px; font-family:inherit; }
       .amz-amount-input:focus { outline:none; border-color:#232f3e; }
       .amz-section-divider { border-top:1px solid #e7e7e7; margin:8px 0; padding-top:8px; }
       .amz-help-icon { position:relative; display:inline-flex; align-items:center; cursor:help; margin-left:4px; }
@@ -408,8 +408,8 @@ function showSettingsView() {
       if (exists) {
         host.innerHTML = `
           <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-            <span style="color:#067d62; font-size:11px;">Password set</span>
-            <button id="amz-password-remove" style="padding:4px 10px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit;">Remove</button>
+            <span style="color:#067d62; font-size:11px; min-width:0;">Password set</span>
+            <button id="amz-password-remove" style="flex:0 0 auto; padding:4px 10px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit;">Remove</button>
           </div>
         `;
         document.getElementById('amz-password-remove').onclick = () => {
@@ -422,8 +422,8 @@ function showSettingsView() {
 
       host.innerHTML = `
         <div style="display:flex; align-items:center; gap:6px;">
-          <input id="amz-password-new" type="password" autocomplete="new-password" placeholder="Set a password" class="amz-amount-input" style="flex:1; width:auto;">
-          <button id="amz-password-save" style="padding:4px 10px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit;">Set</button>
+          <input id="amz-password-new" type="password" autocomplete="new-password" placeholder="Password" class="amz-amount-input" style="flex:1 1 auto; width:auto; min-width:0;">
+          <button id="amz-password-save" style="flex:0 0 auto; padding:4px 10px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#565959; font-size:11px; cursor:pointer; font-family:inherit;">Set</button>
         </div>
       `;
       document.getElementById('amz-password-save').onclick = () => {
