@@ -1,4 +1,9 @@
-function showLockConfirmDialog(onConfirm, onCancel) {
+function showLockConfirmDialog(onConfirm, onCancel, options = {}) {
+  const dialogTitle = options.title || 'Enable Interface Lock?';
+  const dialogBody =
+    options.body ||
+    `This will block your access to Amazon during the scheduled time. <strong style="color:#0f1111;">You won't be able to change this setting while locked.</strong>`;
+
   const existingDialog = document.getElementById('amz-lock-confirm-dialog');
   if (existingDialog) existingDialog.remove();
 
@@ -20,9 +25,9 @@ function showLockConfirmDialog(onConfirm, onCancel) {
 
   overlay.innerHTML = `
     <div style="background:#fff; border-radius:8px; padding:20px; max-width:min(300px, calc(100vw - 40px)); box-shadow:0 4px 12px rgba(0,0,0,0.3); text-align:center;">
-      <div style="font-size:16px; font-weight:600; color:#0f1111; margin-bottom:12px;">Enable Interface Lock?</div>
+      <div style="font-size:16px; font-weight:600; color:#0f1111; margin-bottom:12px;">${dialogTitle}</div>
       <p style="font-size:13px; color:#565959; margin:0 0 20px 0; line-height:1.4;">
-        This will block your access to Amazon during the scheduled time. <strong style="color:#0f1111;">You won't be able to change this setting while locked.</strong>
+        ${dialogBody}
       </p>
       <div style="display:flex; gap:10px; justify-content:center;">
         <button id="amz-lock-cancel" style="padding:8px 16px; border:1px solid #d5d9d9; border-radius:4px; background:#fff; color:#0f1111; font-size:13px; cursor:pointer; min-height:44px;">Cancel</button>
@@ -125,6 +130,8 @@ function showSettingsView() {
       .amz-toggle input:checked + .slider:before { transform:translateX(12px); }
       .amz-time-input { width:95px; padding:4px 6px; border:1px solid #d5d9d9; border-radius:4px; font-size:12px; font-family:inherit; }
       .amz-time-input:focus { outline:none; border-color:#232f3e; }
+      .amz-amount-input { width:95px; padding:4px 6px; border:1px solid #d5d9d9; border-radius:4px; font-size:12px; font-family:inherit; }
+      .amz-amount-input:focus { outline:none; border-color:#232f3e; }
       .amz-section-divider { border-top:1px solid #e7e7e7; margin:8px 0; padding-top:8px; }
       .amz-help-icon { position:relative; display:inline-flex; align-items:center; cursor:help; margin-left:4px; }
       .amz-help-icon svg { color:#767676; transition:color .2s; }
@@ -172,6 +179,21 @@ function showSettingsView() {
             <span style="color:#565959; font-size:11px; width:32px;">To:</span>
             <input type="time" id="amz-lock-end" class="amz-time-input" value="${settings.lockEndTime}">
           </div>
+        </div>
+      </div>
+
+      <div class="amz-section-divider">
+        <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+          <span style="display:flex; align-items:center; font-weight:600;">Spending Limit<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Blocks Amazon once you have spent more than this in the last 30 days</span></span></span>
+          <div class="amz-toggle">
+            <input type="checkbox" id="amz-setting-limit" ${settings.spendingLimitEnabled ? 'checked' : ''}>
+            <span class="slider"></span>
+          </div>
+        </label>
+        <div id="amz-limit-amount-row" style="margin-top:8px; display:${settings.spendingLimitEnabled ? 'flex' : 'none'}; align-items:center; gap:8px;">
+          <span style="color:#565959; font-size:11px; width:32px;">Max:</span>
+          <input type="number" min="0" step="1" id="amz-limit-amount" class="amz-amount-input" value="${settings.spendingLimitAmount}">
+          <span style="color:#565959; font-size:11px;">${getCurrentDomainConfig().symbol}</span>
         </div>
       </div>
       <div style="border-top:1px solid #e7e7e7; margin-top:4px; padding-top:8px; display:flex; flex-direction:column; gap:6px;">
@@ -241,6 +263,9 @@ function showSettingsView() {
       interfaceLockEnabled: document.getElementById('amz-setting-lock').checked,
       lockStartTime: document.getElementById('amz-lock-start').value,
       lockEndTime: document.getElementById('amz-lock-end').value,
+      spendingLimitEnabled: document.getElementById('amz-setting-limit').checked,
+      spendingLimitAmount:
+        parseFloat(document.getElementById('amz-limit-amount').value) || 0,
     };
   }
 
@@ -273,6 +298,35 @@ function showSettingsView() {
 
   document.getElementById('amz-lock-start').onchange = saveCurrentSettings;
   document.getElementById('amz-lock-end').onchange = saveCurrentSettings;
+
+  document.getElementById('amz-setting-limit').onchange = () => {
+    const limitCheckbox = document.getElementById('amz-setting-limit');
+    const limitRow = document.getElementById('amz-limit-amount-row');
+
+    if (limitCheckbox.checked) {
+      showLockConfirmDialog(
+        () => {
+          // the limit reads the 30-day cache, which only fills while the
+          // 30-day range is on - otherwise the limit would never fire
+          document.getElementById('amz-setting-30days').checked = true;
+          limitRow.style.display = 'flex';
+          saveCurrentSettings();
+        },
+        () => {
+          limitCheckbox.checked = false;
+        },
+        {
+          title: 'Enable Spending Limit?',
+          body: `Amazon will be blocked once you have spent more than your limit in the last 30 days. <strong style="color:#0f1111;">You won't be able to change this setting while blocked.</strong>`,
+        },
+      );
+    } else {
+      limitRow.style.display = 'none';
+      saveCurrentSettings();
+    }
+  };
+
+  document.getElementById('amz-limit-amount').onchange = saveCurrentSettings;
 
   popup.querySelectorAll('.amz-help-icon').forEach(icon => {
     const tooltip = icon.querySelector('.amz-help-tooltip');

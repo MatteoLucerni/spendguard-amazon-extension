@@ -77,6 +77,13 @@ All data is processed and stored locally in your browser. There are no external 
 - **Confirmation dialog with countdown** to prevent accidental activation
 - **Spending summary visible** on the lock screen
 
+### Spending Limit
+
+- **Spend-based Amazon blocking**: set a 30-day spending limit; once you cross it, Amazon is locked
+- **Reuses the full-screen lock overlay**, showing spent vs. limit instead of a countdown
+- **Confirmation dialog with countdown** to prevent accidental activation
+- **Off by default**, and inert until you set an amount above zero
+
 ### Onboarding
 
 - **Welcome gate** for first-time users with a 4-second skip countdown
@@ -228,6 +235,8 @@ The extension provides the following user-configurable options, accessible via t
 | Interface Lock     | ❌ Disabled | Enable time-based Amazon blocking |
 | Lock Start Time    | 09:00       | Start of the lock window          |
 | Lock End Time      | 17:00       | End of the lock window            |
+| Spending Limit     | ❌ Disabled | Block Amazon once the 30-day total reaches the limit |
+| Limit Amount       | 0           | The 30-day limit, in the current domain's currency |
 
 The interface lock supports overnight ranges (e.g. 22:00-06:00). Enabling the lock requires explicit confirmation through a dialog with a 3-second countdown.
 
