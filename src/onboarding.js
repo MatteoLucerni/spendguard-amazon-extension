@@ -156,12 +156,25 @@ function injectDemoPopup() {
   document.body.appendChild(popup);
 }
 
+function injectDemoSettingsView() {
+  const savedState = getPopupState();
+  showSettingsView();
+  savePopupState(savedState.isMinimized, savedState.side);
+
+  const settingsView = document.getElementById(POPUP_ID);
+  if (!settingsView) return;
+  settingsView.inert = true;
+
+  const lockOptions = document.getElementById('amz-lock-times');
+  if (lockOptions) lockOptions.style.display = 'flex';
+}
+
 const tourSteps = [
   {
     target: null,
     title: 'How It Works',
     description:
-      "This extension automatically scans your Amazon orders and shows how much you've spent recently. Here's a quick overview of what you'll see.",
+      "This extension calculates how much you've spent on Amazon recently, right in your browser. Here's a quick overview of what you'll see.",
   },
   {
     target: '#amz-spending-popup',
@@ -179,13 +192,20 @@ const tourSteps = [
     target: '#amz-refresh-all',
     title: 'Refreshing Data',
     description:
-      "Click this to update your data. A few browser tabs may briefly open and close in the background, that's normal! It's how we read your orders.",
+      "Click this to update your data. A few browser tabs may briefly open and close in the background, that's normal! It's how your expenses are calculated.",
   },
   {
     target: '#amz-settings',
     title: 'Settings',
     description:
-      'Customize which time ranges to show. You can also set up an Interface Lock to block Amazon during certain hours and avoid impulse purchases.',
+      'Click the gear icon to open the settings, where you can choose which time ranges to show and set up a daily Lock.',
+  },
+  {
+    target: '#amz-spending-popup',
+    view: 'settings',
+    title: 'Settings & Lock',
+    description:
+      'Turn the time ranges on or off, and set the hours of your daily Lock to avoid impulse purchases. Normal keeps Amazon usable but blocks checkout, Hard blocks all of Amazon. "Allow turning off while locked" decides whether you can turn the lock off before it ends.',
   },
   {
     target: '#amz-close',
@@ -214,6 +234,17 @@ function startTour() {
   document.body.appendChild(backdropEl);
 
   let currentStep = 0;
+  let currentView = 'widget';
+
+  function ensureTourView(view) {
+    if (view === currentView && document.getElementById(POPUP_ID)) return;
+    currentView = view;
+    if (view === 'settings') {
+      injectDemoSettingsView();
+    } else {
+      injectDemoPopup();
+    }
+  }
 
   function showStep(index) {
     currentStep = index;
@@ -224,6 +255,8 @@ function startTour() {
     if (oldTooltip) oldTooltip.remove();
     const oldCenterOverlay = document.getElementById('amz-tour-center-overlay');
     if (oldCenterOverlay) oldCenterOverlay.remove();
+
+    ensureTourView(step.view || 'widget');
 
     const popup = document.getElementById(POPUP_ID);
     if (popup) popup.style.zIndex = '2147483645';

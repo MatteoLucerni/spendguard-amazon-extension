@@ -1,0 +1,227 @@
+*,
+*::before,
+*::after {
+  animation: none !important;
+  transition: none !important;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: #eef0f3;
+  font-family: Arial, sans-serif;
+  color: #0f1111;
+}
+
+.mock-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 48px;
+  padding: 0 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #d5d9d9;
+}
+
+.mock-logo {
+  width: 72px;
+  height: 18px;
+  border-radius: 4px;
+  background: #c9ced6;
+}
+
+.mock-search {
+  flex: 1;
+  max-width: 320px;
+  height: 28px;
+  border-radius: 14px;
+  background: #eef0f3;
+  border: 1px solid #d5d9d9;
+}
+
+.mock-nav-pill {
+  width: 48px;
+  height: 12px;
+  border-radius: 6px;
+  background: #d5d9d9;
+}
+
+.mock-main {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 0.9fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+.mock-main--checkout {
+  grid-template-columns: 1.5fr 1fr;
+}
+
+.mock-card {
+  background: #ffffff;
+  border: 1px solid #d5d9d9;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.mock-image {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #dfe3e8 0%, #c9ced6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mock-image svg {
+  width: 45%;
+  height: 45%;
+  color: #aab1bb;
+}
+
+.mock-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 8px 0;
+}
+
+.mock-line {
+  height: 10px;
+  border-radius: 5px;
+  background: #dfe3e8;
+  margin-bottom: 8px;
+}
+
+.mock-line--short {
+  width: 55%;
+}
+
+.mock-line--medium {
+  width: 80%;
+}
+
+.mock-price {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 10px 0 14px 0;
+}
+
+.mock-label {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  color: #232f3e;
+}
+
+.mock-stock {
+  font-size: 13px;
+  color: #067d62;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+}
+
+.mock-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #565959;
+  margin-bottom: 6px;
+}
+
+.mock-row--total {
+  color: #0f1111;
+  font-weight: 700;
+  font-size: 15px;
+  border-top: 1px solid #e7e7e7;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.mock-results {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+
+.mock-result {
+  background: #ffffff;
+  border: 1px solid #d5d9d9;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.mock-result .mock-image {
+  margin-bottom: 10px;
+}
+
+.mock-result-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.mock-result-price {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.mock-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.a-button {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.a-button-inner {
+  position: relative;
+  display: block;
+}
+
+.a-button-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.01;
+  cursor: pointer;
+  border: 0;
+  margin: 0;
+}
+
+.a-button-text {
+  display: block;
+  padding: 9px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.mock-button-secondary .a-button-text {
+  background: #ffffff;
+  border: 1px solid #aab1bb;
+  color: #0f1111;
+}
+
+.mock-button-primary .a-button-text {
+  background: #232f3e;
+  border: 1px solid #232f3e;
+  color: #ffffff;
+}

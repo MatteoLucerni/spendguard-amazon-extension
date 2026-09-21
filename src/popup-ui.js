@@ -153,7 +153,7 @@ function showLoadingPopup() {
         <div style="padding:8px; font-size:12px; color:#565959; line-height:1.3;">
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
                 <div style="width:12px; height:12px; border:2px solid #e7e7e7; border-top:2px solid #232f3e; border-radius:50%; animation:amz-spinner 0.8s linear infinite;"></div>
-                <span>Reading your orders...</span>
+                <span>Calculating expenses...</span>
             </div>
             <div style="font-size:11px; color:#767676; line-height:1.4;">A few tabs may open briefly in the background, they'll close on their own!</div>
         </div>
@@ -358,7 +358,7 @@ function injectPopup(data) {
       : '';
 
   const lockStatusMessage = settings.interfaceLockEnabled
-    ? `<div style="font-size:10px; color:#565959; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">Lock: ${settings.lockStartTime} - ${settings.lockEndTime}</div>`
+    ? `<div style="font-size:10px; color:#565959; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">${settings.lockMode === 'hard' ? 'Hard lock' : 'Normal lock'}: ${settings.lockStartTime} - ${settings.lockEndTime}</div>`
     : `<div style="font-size:10px; color:#999; text-align:center; border-top:1px solid #e7e7e7; padding-top:3px">Lock not configured</div>`;
 
   popup.innerHTML = `

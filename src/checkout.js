@@ -78,10 +78,10 @@ function handleCheckoutPage() {
   }
 }
 
-function observeCheckoutPage() {
+function observeCheckoutPage(onReady) {
   const subtotals = document.getElementById('subtotals');
   if (subtotals) {
-    handleCheckoutPage();
+    onReady();
     return;
   }
 
@@ -89,7 +89,7 @@ function observeCheckoutPage() {
     const subtotals = document.getElementById('subtotals');
     if (subtotals) {
       obs.disconnect();
-      handleCheckoutPage();
+      onReady();
     }
   });
 

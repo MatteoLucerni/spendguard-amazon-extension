@@ -64,23 +64,38 @@ All data is processed and stored locally in your browser. There are no external 
 - **Draggable popup** that snaps to left/right sides of the viewport
 - **Minimize to icon**: compact pill showing your spending total at a glance
 - **Responsive design**: three layout tiers: mobile (≤480px), tablet (≤768px), desktop
+- **Wider settings panel**: the settings view widens to 300px on tablet and desktop, then the widget returns to its normal size
 - **Relative timestamps**: "5 min ago", "2 hours ago" for last refresh time
 
 ### Checkout Warning
 
-- **Spending banner on checkout pages**: a yellow ⚠️ warning showing how much you've already spent, injected directly on Amazon's checkout flow
+- **Spending banner on checkout pages**: a yellow warning showing how much you've already spent, injected directly on Amazon's checkout flow (replaced by the lock notice while a Normal lock is active)
 
-### Interface Lock
+### Lock
 
-- **Time-based Amazon blocking**: configure a daily time window (e.g. 09:00-17:00) to block Amazon access
-- **Full-screen lock overlay** with live countdown timer until unlock
-- **Confirmation dialog with countdown** to prevent accidental activation
-- **Spending summary visible** on the lock screen
+A daily time window (e.g. 09:00-17:00, overnight ranges supported) with two modes:
+
+- **Normal** (default): Amazon stays fully usable, but every step that places an order is blocked: Buy Now, 1-Click, Proceed to checkout, and the final Place your order button. Add to cart keeps working.
+  - Buttons stay visible and clickable, marked with a small lock badge
+  - Clicking one shows a SpendGuard notice with the unlock time and how much you've already spent
+  - Buttons are detected through Amazon's own element names and form actions, never through their text, so it works in every language
+  - Activates immediately, no confirmation needed
+- **Hard**: blocks Amazon entirely
+  - **Full-screen lock overlay** with live countdown timer until unlock
+  - **Confirmation dialog with countdown** to prevent accidental activation
+  - **Spending summary visible** on the lock screen
+
+The difference between the two modes is always written in the settings panel, right under the Lock switch.
+
+**Allow turning off while locked** (on by default, applies to both modes):
+
+- **On**: the lock can be changed or turned off at any time. With a Hard lock the overlay stays, but the SpendGuard widget remains available above it, so you can open the settings and turn the lock off
+- **Off**: during the lock hours the Lock switch, the mode, the times and this switch itself are frozen until the lock ends. With a Hard lock the widget is not shown at all. Turning this switch off requires a confirmation dialog with countdown
 
 ### Onboarding
 
 - **Welcome gate** for first-time users with a 4-second skip countdown
-- **6-step interactive spotlight tour** with keyboard navigation (arrow keys, Escape)
+- **7-step interactive spotlight tour** with keyboard navigation (arrow keys, Escape), including a step inside the settings panel that explains the time ranges and the Normal / Hard lock
 - **Replay tutorial** available anytime from settings
 
 ### Error Handling
@@ -162,7 +177,7 @@ The extension supports **21 Amazon regional domains** with localized price parsi
 ## How It Works
 
 1. **Content scripts** are injected on every Amazon page ([`src/main.js`](src/main.js) is the entry point)
-2. On load, the extension checks for lock mode, checkout pages, and onboarding status
+2. On load, the extension checks for an active Hard lock, checkout pages, and onboarding status, and installs the Normal lock's click and submit guards
 3. In normal mode, it sends a message to the **background service worker** ([`background.js`](background.js)) requesting spending data
 4. The service worker checks its **24-hour cache**. If fresh data exists, it returns immediately
 5. If cache is stale or a force-refresh is requested, the service worker:
@@ -172,7 +187,7 @@ The extension supports **21 Amazon regional domains** with localized price parsi
    - **Paginates** through order pages (10 orders/page, max 200 orders)
    - Stores the result in `chrome.storage.local` with a 24-hour TTL
 6. The spending data is sent back to the content script, which renders the **floating popup widget**
-7. On checkout pages, a **spending warning banner** is injected near the subtotal
+7. On checkout pages, a **spending warning banner** is injected near the subtotal, or the **lock notice** while a Normal lock is active
 
 The scraping tab URL includes a `_scraping=1` parameter so the extension's content scripts skip initialization on scraping pages, avoiding recursive injection.
 
@@ -185,6 +200,11 @@ amazon-spending-tracker-extension/
 ├── manifest.json              # Extension manifest (Manifest V3)
 ├── background.js              # Service worker: scraping, caching, message routing
 ├── build.ps1                  # PowerShell packaging script for Chrome Web Store
+├── screenshots.ps1            # Regenerates the website and Chrome Web Store screenshots with headless Chrome
+├── tools/
+│   └── screenshots/           # Screenshot harness: chrome.* stub, mock pages, scenes, store layout
+├── store/
+│   └── screenshots/           # Chrome Web Store screenshots, generated by screenshots.ps1
 ├── .gitignore                 # Git ignore rules (dist/, *.zip, OS files)
 ├── src/
 │   ├── main.js                # Entry point: init, routing (lock/checkout/normal)
@@ -197,8 +217,9 @@ amazon-spending-tracker-extension/
 │   ├── settings.js            # Settings persistence (chrome.storage.local)
 │   ├── data.js                # Data loading, refresh orchestration, caching
 │   ├── checkout.js            # Checkout page spending warning banner
-│   ├── lock.js                # Interface lock overlay with countdown
-│   └── onboarding.js          # Welcome gate and 6-step spotlight tour
+│   ├── lock.js                # Lock time window logic and Hard lock overlay with countdown
+│   ├── purchase-lock.js       # Normal lock: checkout blocking, lock badges and notices
+│   └── onboarding.js          # Welcome gate and 7-step spotlight tour
 ├── assets/
 │   └── images/
 │       └── icons/
@@ -212,7 +233,8 @@ amazon-spending-tracker-extension/
     ├── js/
     │   └── main.js            # Landing page interactivity
     └── images/
-        └── icon.png           # Landing page icon
+        ├── icon.png           # Landing page icon
+        └── screenshots/       # Generated by screenshots.ps1
 ```
 
 ---
@@ -221,15 +243,17 @@ amazon-spending-tracker-extension/
 
 The extension provides the following user-configurable options, accessible via the gear icon in the popup:
 
-| Setting            | Default     | Description                       |
-| ------------------ | ----------- | --------------------------------- |
-| Show Last 30 Days  | ✅ Enabled  | Display 30-day spending total     |
-| Show Last 3 Months | ✅ Enabled  | Display 3-month spending total    |
-| Interface Lock     | ❌ Disabled | Enable time-based Amazon blocking |
-| Lock Start Time    | 09:00       | Start of the lock window          |
-| Lock End Time      | 17:00       | End of the lock window            |
+| Setting                        | Default  | Description                                            |
+| ------------------------------ | -------- | ------------------------------------------------------ |
+| Show Last 30 Days              | Enabled  | Display 30-day spending total                          |
+| Show Last 3 Months             | Enabled  | Display 3-month spending total                         |
+| Lock                           | Disabled | Enable the time-based lock                             |
+| Lock Mode                      | Normal   | Normal blocks checkout only, Hard blocks all of Amazon |
+| Allow Turning Off While Locked | Enabled  | Keep the lock editable during the lock hours           |
+| Lock Start Time                | 09:00    | Start of the lock window                               |
+| Lock End Time                  | 17:00    | End of the lock window                                 |
 
-The interface lock supports overnight ranges (e.g. 22:00-06:00). Enabling the lock requires explicit confirmation through a dialog with a 3-second countdown.
+The lock supports overnight ranges (e.g. 22:00-06:00). The Normal lock activates immediately. The Hard lock requires explicit confirmation through a dialog with a 3-second countdown, both when enabling it and when switching to it; so does turning off "Allow turning off while locked". Users who had the lock enabled before lock modes existed keep the Hard mode.
 
 ---
 
@@ -293,6 +317,34 @@ The script:
 - Excludes non-extension files (`docs/`, `README.md`, `.git/`, `build.ps1`)
 
 > **Requirements:** PowerShell 5.1+ (built into Windows). No additional dependencies needed.
+
+---
+
+## Screenshots
+
+The screenshots on the landing page and on the Chrome Web Store listing are generated, not taken by hand. To refresh all of them after a UI change:
+
+```powershell
+.screenshots.ps1
+```
+
+The script:
+
+- Opens `tools/screenshots/harness.html` in headless Chrome (or Edge), with the real content scripts listed in `manifest.json` (except the `src/main.js` entry point), a stubbed `chrome.*` API and sample spending data
+- Renders each scene on a neutral mock page: `widget`, `settings`, `normal-lock`, `checkout-lock`, `hard-lock`, `checkout-warning`
+- Saves the website images as `docs/images/screenshots/<scene>.png` (720x640 at 2x)
+- Builds the 5 Chrome Web Store images from the same scenes, each with a short headline on the left and a zoomed crop of the scene on the right, and saves them as `store/screenshots/<n>-<scene>.png`: 1280x800, full bleed, 24-bit PNG without alpha, as the store requires. The number is the upload order
+
+No Amazon account, login or real order data is involved. Useful options:
+
+```powershell
+.screenshots.ps1 -Target Site
+.screenshots.ps1 -Target Store
+.screenshots.ps1 -Scene settings,normal-lock
+.screenshots.ps1 -ChromePath "C:path	ochrome.exe"
+```
+
+The browser is found automatically in the standard install folders; `-ChromePath` or the `CHROME_PATH` environment variable override it.
 
 ---
 

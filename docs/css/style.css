@@ -286,26 +286,105 @@ img {
     font-size: 0.75rem;
 }
 
-/* ====================== VIDEO ====================== */
-
-.video__wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 800px;
+.screenshots {
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding-bottom: 56.25%;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
-.video__wrapper iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
+.screenshot {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: center;
+    gap: 48px;
+    margin: 0;
+}
+
+.screenshot:nth-child(even) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+}
+
+.screenshot:nth-child(even) .screenshot__link {
+    order: 2;
+}
+
+.screenshot__link {
+    display: block;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.screenshot__link:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+}
+
+.screenshot__link img {
     width: 100%;
-    height: 100%;
-    border: 0;
+    height: auto;
+}
+
+.screenshot__caption {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.screenshot__title {
+    color: var(--dark);
+    font-size: 1.5rem;
+    line-height: 1.3;
+}
+
+.screenshot__desc {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+.screenshots__note {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 0.85rem;
+    margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+    .screenshots {
+        gap: 40px;
+    }
+
+    .screenshot,
+    .screenshot:nth-child(even) {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .screenshot:nth-child(even) .screenshot__link {
+        order: 0;
+    }
+
+    .screenshot__title {
+        font-size: 1.2rem;
+    }
+
+    .screenshot__desc {
+        font-size: 0.95rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .screenshot__link,
+    .screenshot__link:hover {
+        transition: none;
+        transform: none;
+    }
 }
 
 /* ====================== SECTIONS ====================== */

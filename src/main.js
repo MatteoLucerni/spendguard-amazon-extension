@@ -5,15 +5,24 @@ function checkOnboardingAndInit() {
   initSettings(() => {
     const settings = getSettings();
 
-    if (isInLockTimeRange(settings)) {
+    if (isHardLockActive(settings)) {
       loadSpendingDataForLock(spendingData => {
         showLockOverlay(settings, spendingData);
+        if (settings.allowUnlockWhileLocked) {
+          loadData(true);
+        }
       });
       return;
     }
 
+    initPurchaseLock();
+
     if (window.location.href.includes('checkout')) {
-      observeCheckoutPage();
+      if (isPurchaseLockActive(settings)) {
+        observeCheckoutPage(showCheckoutLockNotice);
+      } else {
+        observeCheckoutPage(handleCheckoutPage);
+      }
       return;
     }
 

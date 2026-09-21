@@ -16,3 +16,6 @@ Desktop.ini
 
 # Logs
 *.log
+context
+
+tools/screenshots/.harness.generated.html
