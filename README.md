@@ -64,6 +64,7 @@ All data is processed and stored locally in your browser. There are no external 
 - **Draggable popup** that snaps to left/right sides of the viewport
 - **Minimize to icon**: compact pill showing your spending total at a glance
 - **Responsive design**: three layout tiers: mobile (≤480px), tablet (≤768px), desktop
+- **Wider settings panel**: the settings view widens to 300px on tablet and desktop, then the widget returns to its normal size
 - **Relative timestamps**: "5 min ago", "2 hours ago" for last refresh time
 
 ### Checkout Warning

@@ -43,7 +43,7 @@ Per-domain config fields:
 These are classic scripts sharing one global scope, and later files reference symbols declared in earlier ones. Keep function and variable names unique across all of them.
 
 1. `src/constants.js`: SVG icon strings, `POPUP_ID`, `AMAZON_DOMAINS`, `getAmazonDomainConfig`, `getCurrentDomainConfig`. Also loaded by the service worker, so its top level must never touch `window`, `document` or `localStorage` (functions that do, like `getCurrentDomainConfig`, are fine as long as the worker never calls them).
-2. `src/utils.js`: `cachedSpendingData`, `contextInvalidated`, `formatAmountHtml` (multi-currency amount rendering), `getTotalOrders`, `getResponsiveConfig` (the `mobile` <= 480px / `tablet` <= 768px / `desktop` tiers every UI component sizes itself from), `formatRelativeTime`, `safeSendMessage`.
+2. `src/utils.js`: `cachedSpendingData`, `contextInvalidated`, `formatAmountHtml` (multi-currency amount rendering), `getTotalOrders`, `getResponsiveConfig` (the `mobile` <= 480px / `tablet` <= 768px / `desktop` tiers every UI component sizes itself from; `settingsWidth`, 300px on tablet and desktop, is used only by the settings view, which is deliberately wider than the main widget), `formatRelativeTime`, `safeSendMessage`.
 3. `src/styles.js`: `injectGlobalStyles`, the one `<style>` element holding every keyframe and shared class (`amz-` prefixed).
 4. `src/settings.js`: settings defaults, in-memory cache, persistence and the `chrome.storage.onChanged` sync (see **Settings**).
 5. `src/state.js`: loading flags (`isLoading30`, `isLoading3M`), `tourActive`, widget position/minimized state, viewport clamping, and the window resize handler.
