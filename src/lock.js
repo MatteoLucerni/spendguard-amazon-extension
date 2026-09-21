@@ -143,6 +143,7 @@ function showLockOverlay(settings, spendingData) {
       </svg>
       <h1 style="font-size:clamp(18px, 4vw, 28px); font-weight:700; margin:20px 0 10px 0;">Amazon is Locked</h1>
       <p style="font-size:clamp(11px, 2vw, 14px); color:#a0a0a0; margin:0;">Time set: ${settings.lockStartTime} - ${settings.lockEndTime}</p>
+      ${settings.allowUnlockWhileLocked ? '<p style="font-size:clamp(11px, 2vw, 13px); color:#a0a0a0; margin:8px 0 0 0;">You can turn off the lock from the SpendGuard widget.</p>' : ''}
     </div>
     <div style="margin-top:40px; text-align:center;">
       <div style="font-size:clamp(11px, 2vw, 14px); color:#a0a0a0; margin-bottom:25px;">Unlocks in</div>
@@ -157,10 +158,10 @@ function showLockOverlay(settings, spendingData) {
 
   document.body.appendChild(overlay);
 
-  startLockTimer(settings);
+  startLockTimer();
 }
 
-function startLockTimer(settings) {
+function startLockTimer() {
   if (lockTimerInterval) {
     clearInterval(lockTimerInterval);
   }
@@ -172,14 +173,18 @@ function startLockTimer(settings) {
       return;
     }
 
-    if (!isInLockTimeRange(settings)) {
+    const currentSettings = getSettings();
+    if (!isHardLockActive(currentSettings)) {
       clearInterval(lockTimerInterval);
       removeLockOverlay();
-      loadData(true);
+      initPurchaseLock();
+      if (!document.getElementById(POPUP_ID)) {
+        loadData(true);
+      }
       return;
     }
 
-    const timeLeft = calculateTimeUntilUnlock(settings);
+    const timeLeft = calculateTimeUntilUnlock(currentSettings);
     timerElement.textContent = formatLockTime(
       timeLeft.hours,
       timeLeft.minutes,

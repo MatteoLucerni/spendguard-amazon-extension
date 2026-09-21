@@ -84,6 +84,13 @@ A daily time window (e.g. 09:00-17:00, overnight ranges supported) with two mode
   - **Confirmation dialog with countdown** to prevent accidental activation
   - **Spending summary visible** on the lock screen
 
+The difference between the two modes is always written in the settings panel, right under the Lock switch.
+
+**Allow turning off while locked** (on by default, applies to both modes):
+
+- **On**: the lock can be changed or turned off at any time. With a Hard lock the overlay stays, but the SpendGuard widget remains available above it, so you can open the settings and turn the lock off
+- **Off**: during the lock hours the Lock switch, the mode, the times and this switch itself are frozen until the lock ends. With a Hard lock the widget is not shown at all. Turning this switch off requires a confirmation dialog with countdown
+
 ### Onboarding
 
 - **Welcome gate** for first-time users with a 4-second skip countdown
@@ -229,16 +236,17 @@ amazon-spending-tracker-extension/
 
 The extension provides the following user-configurable options, accessible via the gear icon in the popup:
 
-| Setting            | Default  | Description                                              |
-| ------------------ | -------- | -------------------------------------------------------- |
-| Show Last 30 Days  | Enabled  | Display 30-day spending total                            |
-| Show Last 3 Months | Enabled  | Display 3-month spending total                           |
-| Lock               | Disabled | Enable the time-based lock                               |
-| Lock Mode          | Normal   | Normal blocks checkout only, Hard blocks all of Amazon   |
-| Lock Start Time    | 09:00    | Start of the lock window                                 |
-| Lock End Time      | 17:00    | End of the lock window                                   |
+| Setting                        | Default  | Description                                            |
+| ------------------------------ | -------- | ------------------------------------------------------ |
+| Show Last 30 Days              | Enabled  | Display 30-day spending total                          |
+| Show Last 3 Months             | Enabled  | Display 3-month spending total                         |
+| Lock                           | Disabled | Enable the time-based lock                             |
+| Lock Mode                      | Normal   | Normal blocks checkout only, Hard blocks all of Amazon |
+| Allow Turning Off While Locked | Enabled  | Keep the lock editable during the lock hours           |
+| Lock Start Time                | 09:00    | Start of the lock window                               |
+| Lock End Time                  | 17:00    | End of the lock window                                 |
 
-The lock supports overnight ranges (e.g. 22:00-06:00). The Normal lock activates immediately. The Hard lock requires explicit confirmation through a dialog with a 3-second countdown, both when enabling it and when switching to it, and its settings cannot be changed while it is active. Users who had the lock enabled before lock modes existed keep the Hard mode.
+The lock supports overnight ranges (e.g. 22:00-06:00). The Normal lock activates immediately. The Hard lock requires explicit confirmation through a dialog with a 3-second countdown, both when enabling it and when switching to it; so does turning off "Allow turning off while locked". Users who had the lock enabled before lock modes existed keep the Hard mode.
 
 ---
 

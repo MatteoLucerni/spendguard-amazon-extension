@@ -8,6 +8,9 @@ function checkOnboardingAndInit() {
     if (isHardLockActive(settings)) {
       loadSpendingDataForLock(spendingData => {
         showLockOverlay(settings, spendingData);
+        if (settings.allowUnlockWhileLocked) {
+          loadData(true);
+        }
       });
       return;
     }

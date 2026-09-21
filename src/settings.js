@@ -3,6 +3,7 @@ const SETTINGS_DEFAULTS = {
   show3Months: true,
   interfaceLockEnabled: false,
   lockMode: 'normal',
+  allowUnlockWhileLocked: true,
   lockStartTime: '09:00',
   lockEndTime: '17:00',
 };
@@ -44,6 +45,10 @@ function initSettings(callback) {
         interfaceLockEnabled:
           parsed.interfaceLockEnabled || SETTINGS_DEFAULTS.interfaceLockEnabled,
         lockMode: resolveLockMode(parsed),
+        allowUnlockWhileLocked:
+          parsed.allowUnlockWhileLocked !== undefined
+            ? parsed.allowUnlockWhileLocked
+            : SETTINGS_DEFAULTS.allowUnlockWhileLocked,
         lockStartTime: parsed.lockStartTime || SETTINGS_DEFAULTS.lockStartTime,
         lockEndTime: parsed.lockEndTime || SETTINGS_DEFAULTS.lockEndTime,
       };
@@ -63,6 +68,10 @@ function initSettings(callback) {
             parsed.interfaceLockEnabled ||
             SETTINGS_DEFAULTS.interfaceLockEnabled,
           lockMode: resolveLockMode(parsed),
+          allowUnlockWhileLocked:
+            parsed.allowUnlockWhileLocked !== undefined
+              ? parsed.allowUnlockWhileLocked
+              : SETTINGS_DEFAULTS.allowUnlockWhileLocked,
           lockStartTime:
             parsed.lockStartTime || SETTINGS_DEFAULTS.lockStartTime,
           lockEndTime: parsed.lockEndTime || SETTINGS_DEFAULTS.lockEndTime,
