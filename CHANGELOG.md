@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 - The previous Interface Lock is now the Hard lock mode. Users who already had it enabled keep it, and like everyone else they can now turn it off during the lock hours unless they disable the new switch.
 - While a Normal lock is active, checkout pages show the lock notice instead of the spending warning.
 - The loading message now reads "Calculating expenses..." instead of "Reading your orders...".
-- The tutorial explains the Normal and Hard lock modes and the option to turn the lock off early, and describes the spending calculation without the "reading your orders" wording.
+- The tutorial has a new step that opens the settings panel and explains the time ranges, the Normal and Hard lock modes, and the option to turn the lock off early (7 steps instead of 6). It also describes the spending calculation without the "reading your orders" wording.
 - The settings panel is 50% wider on tablet and desktop (300px instead of 200px) so its controls are no longer cramped. The main widget keeps its size.
 
 ## [1.0.1] - 2026-03-07

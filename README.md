@@ -95,7 +95,7 @@ The difference between the two modes is always written in the settings panel, ri
 ### Onboarding
 
 - **Welcome gate** for first-time users with a 4-second skip countdown
-- **6-step interactive spotlight tour** with keyboard navigation (arrow keys, Escape)
+- **7-step interactive spotlight tour** with keyboard navigation (arrow keys, Escape), including a step inside the settings panel that explains the time ranges and the Normal / Hard lock
 - **Replay tutorial** available anytime from settings
 
 ### Error Handling
@@ -214,7 +214,7 @@ amazon-spending-tracker-extension/
 │   ├── checkout.js            # Checkout page spending warning banner
 │   ├── lock.js                # Lock time window logic and Hard lock overlay with countdown
 │   ├── purchase-lock.js       # Normal lock: checkout blocking, lock badges and notices
-│   └── onboarding.js          # Welcome gate and 6-step spotlight tour
+│   └── onboarding.js          # Welcome gate and 7-step spotlight tour
 ├── assets/
 │   └── images/
 │       └── icons/

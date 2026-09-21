@@ -50,7 +50,7 @@ These are classic scripts sharing one global scope, and later files reference sy
 6. `src/popup-ui.js`: the floating widget (`injectPopup`), minimized icon, loading skeleton, error popup, drag handling.
 7. `src/settings-ui.js`: the settings view inside the widget (the Lock switch with its always-visible Normal / Hard description, the "Allow turning off while locked" switch, the mode selector, the times) and `showLockConfirmDialog(content, onConfirm, onCancel)`, the countdown confirmation used for every change that makes the lock stricter. `refreshLockFreeze` disables every `[data-amz-lock-control]` while `isLockSettingsFrozen` is true.
 8. `src/data.js`: `loadData`, `refreshRange`, `refreshAll`, error routing to `showErrorPopup`.
-9. `src/onboarding.js`: first-run welcome gate and guided tour over a demo widget.
+9. `src/onboarding.js`: first-run welcome gate and guided tour. Each entry in `tourSteps` can set `view: 'settings'`; `ensureTourView` then swaps the demo widget for the real settings view, made `inert` and with the lock options forced visible (`injectDemoSettingsView`), and swaps back for steps without it. `injectDemoSettingsView` restores the saved widget side that `showSettingsView` overwrites. When the settings panel changes, check that this step still explains it.
 10. `src/checkout.js`: checkout warning. `observeCheckoutPage(onReady)` waits for `#subtotals` and runs whichever callback `main.js` passes.
 11. `src/lock.js`: lock window logic (`isInLockTimeRange`, `isHardLockActive`, `isPurchaseLockActive`), the Hard lock overlay and countdown, and `loadSpendingDataForLock`.
 12. `src/purchase-lock.js`: the Normal lock (see **Lock**). Declarations only; `initPurchaseLock()` is called from `main.js`.
