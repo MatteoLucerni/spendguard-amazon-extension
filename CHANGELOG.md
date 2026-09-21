@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 - While a Normal lock is active, checkout pages show the lock notice instead of the spending warning.
 - The loading message now reads "Calculating expenses..." instead of "Reading your orders...".
 - The tutorial has a new step that opens the settings panel and explains the time ranges, the Normal and Hard lock modes, and the option to turn the lock off early (7 steps instead of 6). It also describes the spending calculation without the "reading your orders" wording.
-- The website's demo video is replaced by generated screenshots of every feature. `screenshots.ps1` regenerates them with headless Chrome from the real UI code, sample data and a neutral mock page.
+- The website's demo video is replaced by generated screenshots of every feature. `screenshots.ps1` regenerates them with headless Chrome from the real UI code, sample data and a neutral mock page, and also produces the 5 Chrome Web Store screenshots (1280x800, 24-bit PNG) in `store/screenshots/`.
 - The settings panel is 50% wider on tablet and desktop (300px instead of 200px) so its controls are no longer cramped. The main widget keeps its size.
 
 ## [1.0.1] - 2026-03-07

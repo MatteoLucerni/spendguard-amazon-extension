@@ -144,6 +144,36 @@ body {
   margin-top: 8px;
 }
 
+.mock-results {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+
+.mock-result {
+  background: #ffffff;
+  border: 1px solid #d5d9d9;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.mock-result .mock-image {
+  margin-bottom: 10px;
+}
+
+.mock-result-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.mock-result-price {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
 .mock-stack {
   display: flex;
   flex-direction: column;

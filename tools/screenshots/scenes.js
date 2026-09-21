@@ -59,6 +59,46 @@
     `;
   }
 
+  const RESULT_ICONS = [
+    PRODUCT_ICON_SVG,
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><path d="M12 9v3l2 2"/><path d="M9 3h6M9 21h6"/></svg>`,
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
+  ];
+
+  const RESULT_ITEMS = [
+    ['Wireless Headphones', '$59.99'],
+    ['Smart Watch', '$129.00'],
+    ['Paperback Novel', '$14.95'],
+    ['Instant Camera', '$79.99'],
+    ['Studio Headphones', '$89.50'],
+    ['Kitchen Timer', '$12.99'],
+    ['Travel Guide', '$22.40'],
+    ['Action Camera', '$149.00'],
+    ['Wireless Earbuds', '$39.99'],
+    ['Wall Clock', '$27.90'],
+    ['Cookbook', '$18.75'],
+    ['Camera Lens', '$219.00'],
+  ];
+
+  function renderResultsPage() {
+    const cards = RESULT_ITEMS.map(
+      ([title, price], index) => `
+        <div class="mock-result">
+          <div class="mock-image">${RESULT_ICONS[index % RESULT_ICONS.length]}</div>
+          <div class="mock-result-title">${title}</div>
+          <div class="mock-line mock-line--medium"></div>
+          <div class="mock-result-price">${price}</div>
+        </div>
+      `,
+    ).join('');
+
+    document.body.innerHTML = `
+      ${TOPBAR_HTML}
+      <div class="mock-results">${cards}</div>
+    `;
+  }
+
   function renderCheckoutPage() {
     document.body.innerHTML = `
       ${TOPBAR_HTML}
@@ -135,6 +175,11 @@
     widget() {
       applySettings({});
       renderProductPage();
+      injectPopup(buildWidgetData());
+    },
+    'widget-results'() {
+      applySettings({});
+      renderResultsPage();
       injectPopup(buildWidgetData());
     },
     settings() {

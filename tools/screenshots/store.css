@@ -1,0 +1,84 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 1280px;
+  height: 800px;
+  overflow: hidden;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 440px 840px;
+  font-family: Arial, sans-serif;
+  background: #eef0f3;
+}
+
+.store-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  padding: 0 48px 0 56px;
+  background: linear-gradient(160deg, #232f3e 0%, #1a2430 100%);
+  color: #ffffff;
+}
+
+.store-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.store-brand img {
+  width: 40px;
+  height: 40px;
+}
+
+.store-headline {
+  margin: 0;
+  font-size: 52px;
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.store-headline span {
+  color: #ff9900;
+}
+
+.store-accent {
+  width: 64px;
+  height: 6px;
+  border-radius: 3px;
+  background: #ff9900;
+}
+
+.store-subline {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.45;
+  color: #c8d0da;
+}
+
+.store-stage {
+  position: relative;
+  overflow: hidden;
+  background: #eef0f3;
+}
+
+.store-stage iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  transform-origin: 0 0;
+}
