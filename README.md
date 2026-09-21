@@ -68,14 +68,21 @@ All data is processed and stored locally in your browser. There are no external 
 
 ### Checkout Warning
 
-- **Spending banner on checkout pages**: a yellow ⚠️ warning showing how much you've already spent, injected directly on Amazon's checkout flow
+- **Spending banner on checkout pages**: a yellow warning showing how much you've already spent, injected directly on Amazon's checkout flow (replaced by the lock notice while a Normal lock is active)
 
-### Interface Lock
+### Lock
 
-- **Time-based Amazon blocking**: configure a daily time window (e.g. 09:00-17:00) to block Amazon access
-- **Full-screen lock overlay** with live countdown timer until unlock
-- **Confirmation dialog with countdown** to prevent accidental activation
-- **Spending summary visible** on the lock screen
+A daily time window (e.g. 09:00-17:00, overnight ranges supported) with two modes:
+
+- **Normal** (default): Amazon stays fully usable, but every step that places an order is blocked: Buy Now, 1-Click, Proceed to checkout, and the final Place your order button. Add to cart keeps working.
+  - Buttons stay visible and clickable, marked with a small lock badge
+  - Clicking one shows a SpendGuard notice with the unlock time and how much you've already spent
+  - Buttons are detected through Amazon's own element names and form actions, never through their text, so it works in every language
+  - Activates immediately, no confirmation needed
+- **Hard**: blocks Amazon entirely
+  - **Full-screen lock overlay** with live countdown timer until unlock
+  - **Confirmation dialog with countdown** to prevent accidental activation
+  - **Spending summary visible** on the lock screen
 
 ### Onboarding
 
@@ -162,7 +169,7 @@ The extension supports **21 Amazon regional domains** with localized price parsi
 ## How It Works
 
 1. **Content scripts** are injected on every Amazon page ([`src/main.js`](src/main.js) is the entry point)
-2. On load, the extension checks for lock mode, checkout pages, and onboarding status
+2. On load, the extension checks for an active Hard lock, checkout pages, and onboarding status, and installs the Normal lock's click and submit guards
 3. In normal mode, it sends a message to the **background service worker** ([`background.js`](background.js)) requesting spending data
 4. The service worker checks its **24-hour cache**. If fresh data exists, it returns immediately
 5. If cache is stale or a force-refresh is requested, the service worker:
@@ -172,7 +179,7 @@ The extension supports **21 Amazon regional domains** with localized price parsi
    - **Paginates** through order pages (10 orders/page, max 200 orders)
    - Stores the result in `chrome.storage.local` with a 24-hour TTL
 6. The spending data is sent back to the content script, which renders the **floating popup widget**
-7. On checkout pages, a **spending warning banner** is injected near the subtotal
+7. On checkout pages, a **spending warning banner** is injected near the subtotal, or the **lock notice** while a Normal lock is active
 
 The scraping tab URL includes a `_scraping=1` parameter so the extension's content scripts skip initialization on scraping pages, avoiding recursive injection.
 
@@ -197,7 +204,8 @@ amazon-spending-tracker-extension/
 │   ├── settings.js            # Settings persistence (chrome.storage.local)
 │   ├── data.js                # Data loading, refresh orchestration, caching
 │   ├── checkout.js            # Checkout page spending warning banner
-│   ├── lock.js                # Interface lock overlay with countdown
+│   ├── lock.js                # Lock time window logic and Hard lock overlay with countdown
+│   ├── purchase-lock.js       # Normal lock: checkout blocking, lock badges and notices
 │   └── onboarding.js          # Welcome gate and 6-step spotlight tour
 ├── assets/
 │   └── images/
@@ -221,15 +229,16 @@ amazon-spending-tracker-extension/
 
 The extension provides the following user-configurable options, accessible via the gear icon in the popup:
 
-| Setting            | Default     | Description                       |
-| ------------------ | ----------- | --------------------------------- |
-| Show Last 30 Days  | ✅ Enabled  | Display 30-day spending total     |
-| Show Last 3 Months | ✅ Enabled  | Display 3-month spending total    |
-| Interface Lock     | ❌ Disabled | Enable time-based Amazon blocking |
-| Lock Start Time    | 09:00       | Start of the lock window          |
-| Lock End Time      | 17:00       | End of the lock window            |
+| Setting            | Default  | Description                                              |
+| ------------------ | -------- | -------------------------------------------------------- |
+| Show Last 30 Days  | Enabled  | Display 30-day spending total                            |
+| Show Last 3 Months | Enabled  | Display 3-month spending total                           |
+| Lock               | Disabled | Enable the time-based lock                               |
+| Lock Mode          | Normal   | Normal blocks checkout only, Hard blocks all of Amazon   |
+| Lock Start Time    | 09:00    | Start of the lock window                                 |
+| Lock End Time      | 17:00    | End of the lock window                                   |
 
-The interface lock supports overnight ranges (e.g. 22:00-06:00). Enabling the lock requires explicit confirmation through a dialog with a 3-second countdown.
+The lock supports overnight ranges (e.g. 22:00-06:00). The Normal lock activates immediately. The Hard lock requires explicit confirmation through a dialog with a 3-second countdown, both when enabling it and when switching to it, and its settings cannot be changed while it is active. Users who had the lock enabled before lock modes existed keep the Hard mode.
 
 ---
 

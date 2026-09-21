@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Normal lock mode: during the lock hours Amazon stays fully usable, but Buy Now, 1-Click, Proceed to checkout, Place your order and Kindle gift purchases are blocked. Buttons stay visible with a lock badge, and clicking one shows a SpendGuard notice with the unlock time and the amount already spent. Detection relies on Amazon's element names and form actions, so it works in every language.
+- Lock mode selector (Normal / Hard) in the settings. Normal is the default and activates without confirmation; Hard keeps the 3-second confirmation countdown.
+
+### Changed
+
+- The previous Interface Lock is now the Hard lock mode. Users who already had it enabled keep it.
+- While a Normal lock is active, checkout pages show the lock notice instead of the spending warning.
+- The loading message now reads "Calculating expenses..." instead of "Reading your orders...".
+
 ## [1.0.1] - 2026-03-07
 
 ### Fixed

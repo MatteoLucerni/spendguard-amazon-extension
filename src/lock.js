@@ -18,6 +18,14 @@ function isInLockTimeRange(settings) {
   return currentMinutes >= startMinutes && currentMinutes < endMinutes;
 }
 
+function isHardLockActive(settings) {
+  return settings.lockMode === 'hard' && isInLockTimeRange(settings);
+}
+
+function isPurchaseLockActive(settings) {
+  return settings.lockMode !== 'hard' && isInLockTimeRange(settings);
+}
+
 function calculateTimeUntilUnlock(settings) {
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();

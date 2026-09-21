@@ -185,7 +185,7 @@ const tourSteps = [
     target: '#amz-settings',
     title: 'Settings',
     description:
-      'Customize which time ranges to show. You can also set up an Interface Lock to block Amazon during certain hours and avoid impulse purchases.',
+      'Customize which time ranges to show. You can also set up a Lock to block checkout, or all of Amazon, during certain hours and avoid impulse purchases.',
   },
   {
     target: '#amz-close',

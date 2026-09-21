@@ -2,12 +2,20 @@ const SETTINGS_DEFAULTS = {
   show30Days: true,
   show3Months: true,
   interfaceLockEnabled: false,
+  lockMode: 'normal',
   lockStartTime: '09:00',
   lockEndTime: '17:00',
 };
 
 const SETTINGS_KEY = 'amz-spending-settings';
 let _settingsCache = { ...SETTINGS_DEFAULTS };
+
+function resolveLockMode(parsed) {
+  if (parsed.lockMode === 'hard' || parsed.lockMode === 'normal') {
+    return parsed.lockMode;
+  }
+  return parsed.interfaceLockEnabled ? 'hard' : SETTINGS_DEFAULTS.lockMode;
+}
 
 function getSettings() {
   return { ..._settingsCache };
@@ -35,6 +43,7 @@ function initSettings(callback) {
             : SETTINGS_DEFAULTS.show3Months,
         interfaceLockEnabled:
           parsed.interfaceLockEnabled || SETTINGS_DEFAULTS.interfaceLockEnabled,
+        lockMode: resolveLockMode(parsed),
         lockStartTime: parsed.lockStartTime || SETTINGS_DEFAULTS.lockStartTime,
         lockEndTime: parsed.lockEndTime || SETTINGS_DEFAULTS.lockEndTime,
       };
@@ -53,6 +62,7 @@ function initSettings(callback) {
           interfaceLockEnabled:
             parsed.interfaceLockEnabled ||
             SETTINGS_DEFAULTS.interfaceLockEnabled,
+          lockMode: resolveLockMode(parsed),
           lockStartTime:
             parsed.lockStartTime || SETTINGS_DEFAULTS.lockStartTime,
           lockEndTime: parsed.lockEndTime || SETTINGS_DEFAULTS.lockEndTime,

@@ -13,7 +13,7 @@
     />
     <meta
       name="keywords"
-      content="amazon spending tracker, chrome extension, budget tracker, amazon expenses, spending control, checkout warning, interface lock, privacy chrome extension, amazon shopping tracker, spendguard, track amazon orders"
+      content="amazon spending tracker, chrome extension, budget tracker, amazon expenses, spending control, checkout warning, checkout lock, interface lock, privacy chrome extension, amazon shopping tracker, spendguard, track amazon orders"
     />
     <meta name="author" content="Matteo Lucerni" />
     <meta name="theme-color" content="#232f3e" />
@@ -35,7 +35,7 @@
     />
     <meta
       property="og:description"
-      content="Track your Amazon™ spending across 21 regional domains. Get checkout warnings, set interface locks, and take control of your budget. Free &amp; open source."
+      content="Track your Amazon™ spending across 21 regional domains. Get checkout warnings, lock checkout or all of Amazon™ during set hours, and take control of your budget. Free &amp; open source."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://getspendguard.com/" />
@@ -56,7 +56,7 @@
     />
     <meta
       name="twitter:description"
-      content="Track your Amazon™ spending across 21 regional domains. Get checkout warnings, set interface locks, and take control of your budget."
+      content="Track your Amazon™ spending across 21 regional domains. Get checkout warnings, lock checkout or all of Amazon™ during set hours, and take control of your budget."
     />
     <meta
       name="twitter:image"
@@ -99,7 +99,7 @@
           "Spending tracking across 21 Amazon™ domains",
           "Multi-currency aggregation",
           "Checkout warning banners",
-          "Interface lock with countdown timer",
+          "Scheduled lock: block checkout only or all of Amazon™",
           "Draggable floating popup widget",
           "Smart caching with 24-hour TTL",
           "Guided onboarding tour",
@@ -146,10 +146,10 @@
           },
           {
             "@type": "Question",
-            "name": "What is the Interface Lock feature?",
+            "name": "What is the Lock feature?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Interface Lock lets you block Amazon™ access during specific hours. When active, a full-screen overlay replaces the page with a countdown timer showing when access resumes. Settings cannot be changed while the lock is active."
+              "text": "The Lock is active during the hours you choose and has two modes. Normal, the default, keeps Amazon™ fully usable but blocks checkout: Buy Now, 1-Click, Proceed to checkout and Place your order show a SpendGuard notice with how much you have already spent, while Add to cart keeps working. Hard blocks Amazon™ entirely with a full-screen overlay and a countdown timer showing when access resumes, and its settings cannot be changed while it is active."
             }
           },
           {
@@ -157,7 +157,7 @@
             "name": "Does it work with Amazon™ Prime orders?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. The extension reads your order history directly from Amazon™'s order pages, which includes all orders — Prime, standard, digital, and physical. Any order that appears in your Amazon™ order history will be tracked."
+              "text": "Yes. The extension reads your order history directly from Amazon™'s order pages, which includes all orders: Prime, standard, digital, and physical. Any order that appears in your Amazon™ order history will be tracked."
             }
           }
         ]
@@ -268,7 +268,7 @@
           </h1>
           <p class="hero__subtitle">
             Track how much you spend on Amazon™ across 21 regional domains. Get
-            warnings at checkout, lock your browsing during set hours, and make
+            warnings at checkout, lock purchases during set hours, and make
             smarter purchasing decisions.
           </p>
           <div class="hero__actions">
@@ -416,11 +416,11 @@
                   <path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
               </div>
-              <h3 class="feature-card__title">Interface Lock</h3>
+              <h3 class="feature-card__title">Scheduled Lock</h3>
               <p class="feature-card__desc">
-                Block Amazon™ access entirely during configurable hours. A
-                full-screen overlay with a countdown timer prevents impulsive
-                browsing and shopping.
+                Pick your hours and a mode. Normal keeps Amazon™ usable but
+                blocks checkout, showing what you've already spent. Hard blocks
+                Amazon™ entirely with a full-screen countdown overlay.
               </p>
             </div>
             <div class="feature-card">
@@ -499,7 +499,7 @@
             <p class="section__desc">
               Watch a quick walkthrough of SpendGuard for Amazon™ and see how it
               helps you track your spending, get checkout warnings, and lock
-              your browsing.
+              your purchases.
             </p>
           </div>
           <div class="video__wrapper">
@@ -557,7 +557,7 @@
               <h3 class="install-step__title">Track Your Spending</h3>
               <p class="install-step__desc">
                 View your 30-day and 3-month totals in the floating widget.
-                Enable checkout warnings and interface lock for extra control.
+                Enable checkout warnings and the scheduled lock for extra control.
               </p>
             </div>
           </div>
@@ -734,7 +734,7 @@
             </div>
             <div class="faq-item">
               <button class="faq-item__question">
-                What is the Interface Lock feature?
+                What is the Lock feature?
                 <svg
                   class="faq-item__icon"
                   viewBox="0 0 24 24"
@@ -749,11 +749,15 @@
               </button>
               <div class="faq-item__answer">
                 <div class="faq-item__answer-inner">
-                  Interface Lock lets you block Amazon™ access during specific
-                  hours (e.g., 9 AM to 5 PM). When active, a full-screen overlay
+                  The Lock is active during the hours you choose (e.g., 9 AM to
+                  5 PM) and has two modes. Normal, the default, keeps Amazon™
+                  fully usable but blocks checkout: Buy Now, 1-Click, Proceed to
+                  checkout and Place your order show a SpendGuard notice with
+                  how much you've already spent, while Add to cart keeps
+                  working. Hard blocks Amazon™ entirely: a full-screen overlay
                   replaces the page with a countdown timer showing when access
-                  resumes. Settings cannot be changed while the lock is active,
-                  so you can't cheat your way around it.
+                  resumes, and its settings cannot be changed while it is
+                  active, so you can't cheat your way around it.
                 </div>
               </div>
             </div>

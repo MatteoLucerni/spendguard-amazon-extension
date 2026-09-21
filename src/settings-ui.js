@@ -20,7 +20,7 @@ function showLockConfirmDialog(onConfirm, onCancel) {
 
   overlay.innerHTML = `
     <div style="background:#fff; border-radius:8px; padding:20px; max-width:min(300px, calc(100vw - 40px)); box-shadow:0 4px 12px rgba(0,0,0,0.3); text-align:center;">
-      <div style="font-size:16px; font-weight:600; color:#0f1111; margin-bottom:12px;">Enable Interface Lock?</div>
+      <div style="font-size:16px; font-weight:600; color:#0f1111; margin-bottom:12px;">Enable Hard Lock?</div>
       <p style="font-size:13px; color:#565959; margin:0 0 20px 0; line-height:1.4;">
         This will block your access to Amazon during the scheduled time. <strong style="color:#0f1111;">You won't be able to change this setting while locked.</strong>
       </p>
@@ -68,6 +68,12 @@ function showLockConfirmDialog(onConfirm, onCancel) {
       if (onCancel) onCancel();
     }
   };
+}
+
+function getLockModeHint(mode) {
+  return mode === 'hard'
+    ? 'Blocks all of Amazon during the set hours.'
+    : 'Amazon stays usable, but checkout is blocked during the set hours.';
 }
 
 function showSettingsView() {
@@ -131,6 +137,12 @@ function showSettingsView() {
       .amz-help-icon:hover svg { color:#232f3e; }
       .amz-help-tooltip { position:fixed; background:#232f3e; color:#fff; padding:6px 8px; border-radius:4px; font-size:11px; line-height:1.3; max-width:140px; white-space:normal; opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; z-index:2147483647; pointer-events:none; }
       .amz-settings-content { overflow:visible; }
+      .amz-lock-mode { display:flex; border:1px solid #d5d9d9; border-radius:4px; overflow:hidden; }
+      .amz-lock-mode label { position:relative; flex:1; text-align:center; padding:4px 0; cursor:pointer; font-size:11px; color:#565959; background:#fff; transition:background .2s, color .2s; }
+      .amz-lock-mode label + label { border-left:1px solid #d5d9d9; }
+      .amz-lock-mode input { position:absolute; opacity:0; width:0; height:0; }
+      .amz-lock-mode label:has(input:checked) { background:#232f3e; color:#fff; font-weight:600; }
+      .amz-lock-mode label:has(input:focus-visible) { outline:2px solid #FF9900; outline-offset:-2px; }
     </style>
     <div id="amz-drag-handle" style="font-size:13px; font-weight:700; background:#232f3e; color:#ffffff; padding:6px 8px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move;">
       <span>Settings</span>
@@ -157,13 +169,18 @@ function showSettingsView() {
 
       <div class="amz-section-divider">
         <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-          <span style="display:flex; align-items:center; font-weight:600;">Interface Lock<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Blocks access during set hours to prevent impulse purchases</span></span></span>
+          <span style="display:flex; align-items:center; font-weight:600;">Lock<span class="amz-help-icon" onclick="event.preventDefault();">${HELP_ICON_SVG}<span class="amz-help-tooltip">Normal blocks checkout only, Hard blocks all of Amazon. Both run during set hours to prevent impulse purchases</span></span></span>
           <div class="amz-toggle">
             <input type="checkbox" id="amz-setting-lock" ${settings.interfaceLockEnabled ? 'checked' : ''}>
             <span class="slider"></span>
           </div>
         </label>
         <div id="amz-lock-times" style="margin-top:8px; display:${settings.interfaceLockEnabled ? 'flex' : 'none'}; flex-direction:column; gap:6px;">
+          <div class="amz-lock-mode" role="radiogroup" aria-label="Lock mode">
+            <label><input type="radio" name="amz-lock-mode" value="normal" ${settings.lockMode !== 'hard' ? 'checked' : ''}>Normal</label>
+            <label><input type="radio" name="amz-lock-mode" value="hard" ${settings.lockMode === 'hard' ? 'checked' : ''}>Hard</label>
+          </div>
+          <div id="amz-lock-mode-hint" style="font-size:10px; color:#767676; line-height:1.3;">${getLockModeHint(settings.lockMode)}</div>
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="color:#565959; font-size:11px; width:32px;">From:</span>
             <input type="time" id="amz-lock-start" class="amz-time-input" value="${settings.lockStartTime}">
@@ -239,6 +256,7 @@ function showSettingsView() {
       show30Days: document.getElementById('amz-setting-30days').checked,
       show3Months: document.getElementById('amz-setting-3months').checked,
       interfaceLockEnabled: document.getElementById('amz-setting-lock').checked,
+      lockMode: getSelectedLockMode(),
       lockStartTime: document.getElementById('amz-lock-start').value,
       lockEndTime: document.getElementById('amz-lock-end').value,
     };
@@ -255,7 +273,7 @@ function showSettingsView() {
     const lockCheckbox = document.getElementById('amz-setting-lock');
     const lockTimes = document.getElementById('amz-lock-times');
 
-    if (lockCheckbox.checked) {
+    if (lockCheckbox.checked && getSelectedLockMode() === 'hard') {
       showLockConfirmDialog(
         () => {
           lockTimes.style.display = 'flex';
@@ -266,10 +284,50 @@ function showSettingsView() {
         },
       );
     } else {
-      lockTimes.style.display = 'none';
+      lockTimes.style.display = lockCheckbox.checked ? 'flex' : 'none';
       saveCurrentSettings();
     }
   };
+
+  popup.querySelectorAll('input[name="amz-lock-mode"]').forEach(radio => {
+    radio.onchange = () => {
+      const lockEnabled = document.getElementById('amz-setting-lock').checked;
+      const mode = getSelectedLockMode();
+
+      if (mode === 'hard' && lockEnabled) {
+        showLockConfirmDialog(
+          () => {
+            updateLockModeHint();
+            saveCurrentSettings();
+          },
+          () => {
+            setSelectedLockMode('normal');
+            updateLockModeHint();
+          },
+        );
+      } else {
+        updateLockModeHint();
+        saveCurrentSettings();
+      }
+    };
+  });
+
+  function getSelectedLockMode() {
+    const checked = popup.querySelector('input[name="amz-lock-mode"]:checked');
+    return checked && checked.value === 'hard' ? 'hard' : 'normal';
+  }
+
+  function setSelectedLockMode(mode) {
+    const radio = popup.querySelector(
+      `input[name="amz-lock-mode"][value="${mode}"]`,
+    );
+    if (radio) radio.checked = true;
+  }
+
+  function updateLockModeHint() {
+    document.getElementById('amz-lock-mode-hint').textContent =
+      getLockModeHint(getSelectedLockMode());
+  }
 
   document.getElementById('amz-lock-start').onchange = saveCurrentSettings;
   document.getElementById('amz-lock-end').onchange = saveCurrentSettings;
