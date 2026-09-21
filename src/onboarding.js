@@ -161,7 +161,7 @@ const tourSteps = [
     target: null,
     title: 'How It Works',
     description:
-      "This extension automatically scans your Amazon orders and shows how much you've spent recently. Here's a quick overview of what you'll see.",
+      "This extension calculates how much you've spent on Amazon recently, right in your browser. Here's a quick overview of what you'll see.",
   },
   {
     target: '#amz-spending-popup',
@@ -179,13 +179,13 @@ const tourSteps = [
     target: '#amz-refresh-all',
     title: 'Refreshing Data',
     description:
-      "Click this to update your data. A few browser tabs may briefly open and close in the background, that's normal! It's how we read your orders.",
+      "Click this to update your data. A few browser tabs may briefly open and close in the background, that's normal! It's how your expenses are calculated.",
   },
   {
     target: '#amz-settings',
     title: 'Settings',
     description:
-      'Customize which time ranges to show. You can also set up a Lock to block checkout, or all of Amazon, during certain hours and avoid impulse purchases.',
+      'Customize which time ranges to show, and set up a daily Lock to avoid impulse purchases. Normal keeps Amazon usable but blocks checkout, Hard blocks all of Amazon. You can also choose whether the lock can be turned off before it ends.',
   },
   {
     target: '#amz-close',

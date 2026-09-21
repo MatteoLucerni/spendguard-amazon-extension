@@ -127,6 +127,6 @@ For ad hoc live-DOM debugging (checking a selector or a price string on a real o
 
 - `main` is the released branch, `develop` the integration branch. Work goes on `feature/*` or `fix/*` branches merged into `develop`.
 - Commit messages use conventional prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `assets:`.
-- **Every functional change updates, in the same pass and without being asked**: `README.md`, the `docs/` website, this file, `CHANGELOG.md`, and `version` in `manifest.json` (minor for features, patch for fixes; changes not yet released share one version). Documentation is part of done, not a follow-up.
+- **Every functional change updates, in the same pass and without being asked**: `README.md`, the `docs/` website, this file, the in-page tutorial copy (`tourSteps` and the demo widget in `src/onboarding.js`) when the change is user-facing, `CHANGELOG.md`, and `version` in `manifest.json` (minor for features, patch for fixes; changes not yet released share one version). Documentation is part of done, not a follow-up.
 - `build.ps1` produces the zip uploaded to the Chrome Web Store from the versioned tree.
 - Permission changes (`permissions`, `host_permissions`) force a Web Store review and a user re-consent prompt. Never add one as a convenience.
