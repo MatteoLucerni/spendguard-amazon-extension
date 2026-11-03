@@ -4,8 +4,8 @@
     "description": "Track and control your Amazon™ spending across 21 regional domains. Checkout warnings, interface lock, and privacy-first design.",
     "start_url": "/",
     "display": "standalone",
-    "theme_color": "#232f3e",
-    "background_color": "#ffffff",
+    "theme_color": "#070b14",
+    "background_color": "#070b14",
     "icons": [
         {
             "src": "images/icon.png",
