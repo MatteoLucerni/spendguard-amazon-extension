@@ -1334,12 +1334,17 @@ p {
 
 .stage__title {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: #c8d0dc;
 }
 
 .stage__count {
+  flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: #c8d0dc;
@@ -2412,6 +2417,47 @@ p {
   .privacy__list {
     justify-items: start;
     text-align: left;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) and (max-height: 500px) {
+  .showcase {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .showcase__visual {
+    display: block;
+  }
+
+  .showcase__sticky {
+    height: calc(100svh - var(--header-h));
+    padding: 0;
+    background: none;
+  }
+
+  .stage {
+    width: min(100%, calc((100svh - var(--header-h) - 48px) * 1.06));
+  }
+
+  .screenshots__steps {
+    padding: 14svh 0 14svh 44px;
+  }
+
+  .screenshots__steps::before,
+  .screenshots__steps::after {
+    top: 14svh;
+    bottom: 14svh;
+    left: 9px;
+  }
+
+  .screenshot {
+    min-height: 72svh;
+  }
+
+  .screenshot::before {
+    left: -42px;
   }
 }
 

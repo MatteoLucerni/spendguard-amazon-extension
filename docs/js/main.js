@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     register(showcase, function (vh) {
       var focus = vh * 0.5;
-      if (!wideMq.matches) {
+      if (!wideMq.matches && getComputedStyle(showcase).display !== 'grid') {
         var stageRect = stage.getBoundingClientRect();
         focus = (clamp(stageRect.bottom, 0, vh) + vh) / 2;
       }
